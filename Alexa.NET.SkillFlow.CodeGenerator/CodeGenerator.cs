@@ -18,9 +18,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var mainClass = new CodeTypeDeclaration(SceneClassName(scene.Name)) { IsClass = true };
             ns.Types.Add(mainClass);
 
-            context.CodeFiles.Add(scene.Name, code);
+            context.CodeFiles.Add(SceneClassName(scene.Name), code);
+            context.CurrentClass = code;
             return base.Begin(scene, context);
         }
+
+
 
         private string SceneClassName(string sceneName)
         {

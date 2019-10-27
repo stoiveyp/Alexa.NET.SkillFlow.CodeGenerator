@@ -29,6 +29,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public Dictionary<string, CodeCompileUnit> CodeFiles { get; } = new Dictionary<string, CodeCompileUnit>();
 
         public CodeGeneratorOptions Options { get; protected set; }
+        public CodeCompileUnit CurrentClass { get; set; }
 
         public async Task Output(string directoryFullName)
         {
