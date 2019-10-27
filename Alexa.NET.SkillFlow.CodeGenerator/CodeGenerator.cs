@@ -1,5 +1,10 @@
-﻿using System.CodeDom;
+﻿using System;
+using System.CodeDom;
+using System.Linq;
 using System.Threading.Tasks;
+using Alexa.NET.Request;
+using Alexa.NET.RequestHandlers;
+using Alexa.NET.Response;
 using Alexa.NET.SkillFlow.Generator;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -12,10 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var ns = new CodeNamespace("SkillFlow");
             code.Namespaces.Add(ns);
 
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL"));
-
-            var mainClass = new CodeTypeDeclaration(SceneClassName(scene.Name)) { IsClass = true };
+            var mainClass = GenerateSceneClass(scene);
             ns.Types.Add(mainClass);
 
             context.CodeFiles.Add(SceneClassName(scene.Name), code);
@@ -23,6 +25,28 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return base.Begin(scene, context);
         }
 
+        private CodeTypeDeclaration GenerateSceneClass(Scene scene)
+        {
+            var mainClass = new CodeTypeDeclaration(SceneClassName(scene.Name))
+            {
+                IsClass = true
+            };
+
+            var method = new CodeMemberMethod
+            {
+                Name = "Generate",
+                ReturnType = new CodeTypeReference(typeof(SkillResponse))
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(typeof(AlexaRequestInformation<APLSkillRequest>),"request"));
+
+            var throwStatement = new CodeThrowExceptionStatement(new CodeObjectCreateExpression(typeof(NotImplementedException)));
+            method.Statements.Add(throwStatement);
+
+            mainClass.Members.Add(method);
+            return mainClass;
+        }
 
 
         private string SceneClassName(string sceneName)
