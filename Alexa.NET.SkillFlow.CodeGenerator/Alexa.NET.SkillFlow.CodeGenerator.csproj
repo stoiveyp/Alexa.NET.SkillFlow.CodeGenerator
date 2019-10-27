@@ -5,19 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="CSProjectTemplate.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="CSProjectTemplate.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Alexa.NET.Management" Version="3.7.0" />
     <PackageReference Include="Alexa.NET.SkillFlow.Generator" Version="1.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.3.1" />
+    <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="2.0.1" />
+    <PackageReference Include="System.CodeDom" Version="4.6.0" />
   </ItemGroup>
 
 </Project>

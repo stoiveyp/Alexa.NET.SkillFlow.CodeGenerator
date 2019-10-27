@@ -17,7 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             var generator = new CodeGenerator();
             var context = new CodeGeneratorContext();
             await generator.Generate(story, context);
-            Assert.Single(context.Project.Documents);
+            Assert.Single(context.CodeFiles);
         }
     }
 }

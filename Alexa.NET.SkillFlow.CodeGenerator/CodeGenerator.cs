@@ -1,8 +1,6 @@
-﻿using System;
+﻿using System.CodeDom;
 using System.Threading.Tasks;
 using Alexa.NET.SkillFlow.Generator;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -10,7 +8,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         protected override Task Begin(Scene scene, CodeGeneratorContext context)
         {
-            context.Project = context.Project.AddDocument(scene.Name + ".cs", SyntaxFactory.ClassDeclaration(scene.Name)).Project;
+            var code = new CodeCompileUnit();
+            var ns = new CodeNamespace("SkillFlow");
+            code.Namespaces.Add(ns);
+            
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL"));
+
+            context.CodeFiles.Add(scene.Name, code);
             return base.Begin(scene, context);
         }
     }
