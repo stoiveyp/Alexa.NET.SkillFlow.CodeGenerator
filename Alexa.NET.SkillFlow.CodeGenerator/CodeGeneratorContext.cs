@@ -32,7 +32,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public async Task Output(string directoryFullName)
         {
-            await CreateProjectFile(directoryFullName);
+            CreateProjectFile(directoryFullName);
             using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
             {
                 foreach (var codefile in CodeFiles)
@@ -51,7 +51,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private XDocument CreateProjectOutline()
         {
-            var doc = new XDocument(null,
+            var doc = new XDocument(
                 new XElement("Project",
                     new XAttribute("Sdk", "Microsoft.NET.Sdk"),
                     new XElement("PropertyGroup",
@@ -67,14 +67,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                             new XAttribute("Include", "Alexa.NET.RequestHandlers"),
                             new XAttribute("Version", "4.1.1"))
                     )
-                 )
+                )
             );
 
-            doc.Declaration = null;
             return doc;
         }
 
-        private async Task CreateProjectFile(string directoryFullName)
+        private void CreateProjectFile(string directoryFullName)
         {
             var csProjectLocation = Path.Combine(directoryFullName, "SkillFlow.csproj");
             var output = CreateProjectOutline();
