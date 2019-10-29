@@ -1,10 +1,4 @@
-﻿using System;
-using System.CodeDom;
-using System.Linq;
-using System.Threading.Tasks;
-using Alexa.NET.Request;
-using Alexa.NET.RequestHandlers;
-using Alexa.NET.Response;
+﻿using System.Threading.Tasks;
 using Alexa.NET.SkillFlow.Generator;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -13,45 +7,25 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         protected override Task Begin(Scene scene, CodeGeneratorContext context)
         {
-            var code = new CodeCompileUnit();
-            var ns = new CodeNamespace("SkillFlow");
-            code.Namespaces.Add(ns);
-
-            var mainClass = GenerateSceneClass(scene);
-            ns.Types.Add(mainClass);
-
-            context.CodeFiles.Add(SceneClassName(scene.Name), code);
-            context.CurrentClass = code;
+            var code = CodeGeneration_Scene.Generate(scene);
+            var sceneClass = code.Namespaces[0].Types[0];
+            context.CodeFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
+            context.CurrentClass = sceneClass;
             return base.Begin(scene, context);
         }
 
-        private CodeTypeDeclaration GenerateSceneClass(Scene scene)
+        protected override Task Begin(Text text, CodeGeneratorContext context)
         {
-            var mainClass = new CodeTypeDeclaration(SceneClassName(scene.Name))
+            var generate = context.CurrentClass.GetGenerateMethod();
+            generate.CleanIfEmpty();
+
+            switch (text.TextType.ToLower())
             {
-                IsClass = true
-            };
-
-            var method = new CodeMemberMethod
-            {
-                Name = "Generate",
-                ReturnType = new CodeTypeReference(typeof(SkillResponse))
-            };
-
-            method.Parameters.Add(
-                new CodeParameterDeclarationExpression(typeof(AlexaRequestInformation<APLSkillRequest>),"request"));
-
-            var throwStatement = new CodeThrowExceptionStatement(new CodeObjectCreateExpression(typeof(NotImplementedException)));
-            method.Statements.Add(throwStatement);
-
-            mainClass.Members.Add(method);
-            return mainClass;
-        }
-
-
-        private string SceneClassName(string sceneName)
-        {
-            return "Scene_" + char.ToUpper(sceneName[0]) + sceneName.Substring(1).Replace(" ", "_");
+                case "say":
+                    CodeGeneration_Text.GenerateSay(generate, text, context);
+                    break;
+            }
+            return base.Begin(text, context);
         }
     }
 }

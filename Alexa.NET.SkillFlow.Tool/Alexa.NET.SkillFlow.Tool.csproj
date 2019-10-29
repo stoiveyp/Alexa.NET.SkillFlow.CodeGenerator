@@ -6,11 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Alexa.NET.SkillFlow.Interpreter" Version="1.0.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Alexa.NET.SkillFlow.CodeGenerator\Alexa.NET.SkillFlow.CodeGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="story.abc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

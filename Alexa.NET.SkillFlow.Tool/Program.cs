@@ -19,13 +19,17 @@ namespace Alexa.NET.SkillFlow.Tool
                 directory.Create();
             }
 
-            var story = new Story();
-            story.Scenes.Add("test", new Scene("test"));
+            Story story;
+            using (var reader = File.OpenRead("story.abc"))
+            {
+                story = await new SkillFlowInterpreter().Interpret(reader);
+            }
+                    
 
             var context = new CodeGeneratorContext();
             var generator = new CodeGenerator.CodeGenerator();
             await generator.Generate(story, context);
-            await context.Output(directory.FullName);
+            context.Output(directory.FullName);
         }
     }
 }
