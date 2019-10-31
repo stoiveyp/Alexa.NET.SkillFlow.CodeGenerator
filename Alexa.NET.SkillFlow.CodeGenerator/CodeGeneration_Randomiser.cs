@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Security.Cryptography;
+using Alexa.NET.Response;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -30,10 +31,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 Name = "PickRandom",
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference(typeof(string))
+                TypeParameters = { new CodeTypeParameter("T")},
+                ReturnType = new CodeTypeReference("T")
             };
 
-            var optionParam = new CodeParameterDeclarationExpression(typeof(string[]), "options");
+            var optionParam = new CodeParameterDeclarationExpression(new CodeTypeReference("T[]"), "options");
             optionParam.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(System.ParamArrayAttribute))));
             pickRandom.Parameters.Add(optionParam);
 

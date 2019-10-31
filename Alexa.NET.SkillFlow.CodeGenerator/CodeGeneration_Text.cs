@@ -9,17 +9,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static void GenerateSay(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
-            if (text.Content.Count == 1)
-            {
-                var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "OutputSpeech");
-                var right = text.AsCodeOutputSpeech(generate);
-                var singleSayAssign = new CodeAssignStatement(left, right);
-                generate.Statements.Add(singleSayAssign);
-            }
-            else
-            {
-                CodeGeneration_Randomiser.Ensure(context);
-            }
+            CodeGeneration_Randomiser.Ensure(context);
+            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "OutputSpeech");
+            var right = text.AsCodeOutputSpeech(generate);
+            var singleSayAssign = new CodeAssignStatement(left, right);
+            generate.Statements.Add(singleSayAssign);
         }
     }
 }

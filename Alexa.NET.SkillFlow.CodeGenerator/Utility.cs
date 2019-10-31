@@ -1,6 +1,8 @@
 ﻿using System;
 using System.CodeDom;
+using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using Alexa.NET.Response;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -32,23 +34,45 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static CodeVariableReferenceExpression AsCodeOutputSpeech(this Text text, CodeMemberMethod method)
         {
-            if (text.Content.Count == 1)
+            if (text.Content.Count == 0)
             {
-                var outputSpeech = text.Content[0];
-                var creationType = outputSpeech.Any(c => c == '<' || c == '>')
-                    ? typeof(SsmlOutputSpeech)
-                    : typeof(PlainTextOutputSpeech);
-                var variable = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), text.TextType, new CodeObjectCreateExpression(creationType));
-                var assignment = new CodeAssignStatement(
-                    new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(text.TextType), "Text"),
-                    new CodePrimitiveExpression(outputSpeech));
-
-                method.Statements.Add(variable);
-                method.Statements.Add(assignment);
-                return new CodeVariableReferenceExpression(text.TextType);
+                throw new InvalidSkillFlowException($"No content in {text.TextType}");
             }
 
-            throw new NotImplementedException("Not written multiple statements yet");
+            var varNames = text.Content.Select((c, i) => AddOutputSpeech(method, $"{text.TextType}_{i}", c)).ToArray();
+
+            if (varNames.Length == 1)
+            {
+                return new CodeVariableReferenceExpression(varNames.First());
+            }
+            
+            var generatorCall = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Randomiser"),
+                "PickRandom",
+                varNames.Select(v => new CodeVariableReferenceExpression(v)).Cast<CodeExpression>().ToArray());
+            var randomVar = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), text.TextType, generatorCall);
+            method.Statements.Add(randomVar);
+            return new CodeVariableReferenceExpression(text.TextType);
+        }
+
+        private static string AddOutputSpeech(CodeMemberMethod method, string varName, string content)
+        {
+            var isSsml = content.Any(c => c == '<' || c == '>');
+            var creationType = isSsml ? typeof(SsmlOutputSpeech) : typeof(PlainTextOutputSpeech);
+            var propertyName = isSsml ? "Ssml" : "Text";
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), varName)
+            {
+                InitExpression = new CodeObjectCreateExpression(creationType)
+            });
+
+            method.Statements.Add(new CodeAssignStatement(
+                    new CodePropertyReferenceExpression(
+                        new CodeVariableReferenceExpression(varName), propertyName),
+                    new CodePrimitiveExpression(content)));
+
+
+            return varName;
         }
     }
 }
