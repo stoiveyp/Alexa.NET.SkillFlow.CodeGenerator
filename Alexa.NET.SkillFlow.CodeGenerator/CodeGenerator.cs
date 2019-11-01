@@ -24,6 +24,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case "say":
                     CodeGeneration_Text.GenerateSay(generate, text, context);
                     break;
+                case "reprompt":
+                    CodeGeneration_Text.GenerateReprompt(generate, text, context);
+                    break;
             }
             return base.Begin(text, context);
         }
