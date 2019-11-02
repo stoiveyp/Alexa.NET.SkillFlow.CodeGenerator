@@ -40,10 +40,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return base.Begin(text, context);
         }
 
-        protected override Task Begin(Visual visuals, CodeGeneratorContext context)
+        protected override Task Render(VisualProperty property, CodeGeneratorContext context)
         {
-            CodeGeneration_Visuals.GenerateAplCall(context);
-            return base.Begin(visuals, context);
+            switch (property.Key)
+            {
+                case "template":
+                    CodeGeneration_Visuals.GenerateAplCall(context,property.Value);
+                    break;
+            }
+            
+            return Noop(context);
         }
     }
 }

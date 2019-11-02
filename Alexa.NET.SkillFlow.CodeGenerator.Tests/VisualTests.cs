@@ -22,7 +22,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
         {
             var story = TestStory();
             var context = await GenerateTestStory(story);
-            Assert.True(context.OtherFiles.ContainsKey("Layouts.json"));
+            Assert.True(context.OtherFiles.ContainsKey("layouts/default.json"));
         }
 
         private readonly CodeGenerator _generator = new CodeGenerator();
@@ -41,7 +41,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             say.Add(new TextLine("this is a test"));
 
             var visual = new Visual();
-            visual.Add(new VisualProperty("layout", "default"));
+            visual.Add(new VisualProperty("template", "default"));
             visual.Add(new VisualProperty("background", "https://www.example.com/url/to/image.jpg"));
             visual.Add(new VisualProperty("title", "ACE Framework"));
             visual.Add(new VisualProperty("subtitle", ""));

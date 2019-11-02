@@ -1,17 +1,24 @@
 ﻿using System.CodeDom;
 using System.Runtime.CompilerServices;
+using Alexa.NET.Response.APL;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Visuals
     {
-        public static void GenerateAplCall(CodeGeneratorContext context)
+        public static void GenerateAplCall(CodeGeneratorContext context, string layout)
         {
-            Ensure(context);
-
+            EnsureAPLHelper(context);
+            AddBlankLayout(context,layout);
         }
 
-        private static void Ensure(CodeGeneratorContext context)
+        private static void AddBlankLayout(CodeGeneratorContext context, string layout)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        private static void EnsureAPLHelper(CodeGeneratorContext context)
         {
             if (context.CodeFiles.ContainsKey("APLHelper"))
             {
@@ -33,8 +40,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var classCode = new CodeTypeDeclaration("APLHelper");
 
+            var getLayout = new CodeMemberMethod
+            {
+                Name = "GetLayout",
+                Attributes = MemberAttributes.Public,
+                ReturnType = new CodeTypeReference(typeof(APLDocument))
+            };
+            getLayout.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "name"));
 
-
+            classCode.Members.Add(getLayout);
             return classCode;
         }
     }
