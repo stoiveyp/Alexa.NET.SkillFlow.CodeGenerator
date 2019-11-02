@@ -123,7 +123,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
 
             var code = new CodeCompileUnit();
-            var ns = new CodeNamespace("SkillFlow");
+            var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("System.Security.Cryptography"));
             code.Namespaces.Add(ns);
 

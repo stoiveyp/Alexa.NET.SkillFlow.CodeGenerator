@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
 {
-    public class SayTests
+    public class TextTests
     {
         [Fact]
         public async Task SingleSayAddsDirectToResponse()
@@ -19,7 +19,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             Assert.NotNull(setSayText);
             var leftHandSide = Assert.IsType<CodePropertyReferenceExpression>(setSayText.Left);
             var rightHandSide = Assert.IsType<CodeVariableReferenceExpression>(setSayText.Right);
-            Assert.Equal(rightHandSide.VariableName, "say");
+            Assert.Equal("say_0",rightHandSide.VariableName);
         }
 
         [Fact]
@@ -32,21 +32,21 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             var context = await GenerateTestStory(story);
             var className = context.GetClass("Scene_Test");
             var generate = className.GenerateMethod();
-            var setSayText = generate.Statements.OfType<CodeVariableDeclarationStatement>().FirstOrDefault();
+            var setSayText = generate.Statements.OfType<CodeVariableDeclarationStatement>().LastOrDefault();
 
             Assert.NotNull(setSayText);
             var speechSelection = setSayText.InitExpression as CodeMethodInvokeExpression;
             Assert.NotNull(speechSelection);
+            Assert.Equal("PickRandom",speechSelection.Method.MethodName);
             Assert.Equal(testText.Count, speechSelection.Parameters.Count);
         }
 
-        private CodeGenerator _generator;
+        private readonly CodeGenerator _generator = new CodeGenerator();
 
         private async Task<CodeGeneratorContext> GenerateTestStory(Story story = null)
         {
             var context = new CodeGeneratorContext();
             var genStory = story ?? TestStory();
-            _generator = new CodeGenerator();
             await _generator.Generate(genStory, context);
             return context;
         }

@@ -22,7 +22,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
         {
             var context = await GenerateTestStory();
             var codeDom = Assert.Single(context.CodeFiles);
-            Assert.Equal("SkillFlow",codeDom.Value.Namespaces[0].Name);
+            Assert.Equal("SkillFlowGenerated",codeDom.Value.Namespaces[0].Name);
         }
 
         [Fact]

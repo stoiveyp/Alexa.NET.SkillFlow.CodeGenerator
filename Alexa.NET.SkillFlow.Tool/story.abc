@@ -30,6 +30,8 @@
 		hear great {
 			-> end
 		}
+	*recap
+	    Morning's done so what do you want to do?
 
 @do not go on a hike
 	*say

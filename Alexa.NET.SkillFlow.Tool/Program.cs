@@ -29,7 +29,7 @@ namespace Alexa.NET.SkillFlow.Tool
             var context = new CodeGeneratorContext();
             var generator = new CodeGenerator.CodeGenerator();
             await generator.Generate(story, context);
-            context.Output(directory.FullName);
+            await context.Output(directory.FullName);
         }
     }
 }

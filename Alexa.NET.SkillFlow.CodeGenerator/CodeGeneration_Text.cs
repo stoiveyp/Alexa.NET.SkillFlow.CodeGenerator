@@ -31,5 +31,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var singleSayAssign = new CodeAssignStatement(left, new CodeVariableReferenceExpression("reprompt"));
             generate.Statements.Add(singleSayAssign);
         }
+
+        public static void GenerateRecap(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
+        {
+            generate.Statements.Add(new CodeCommentStatement("TODO: Wire up recap"));
+        }
     }
 }

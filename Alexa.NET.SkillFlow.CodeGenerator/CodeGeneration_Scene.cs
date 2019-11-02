@@ -10,10 +10,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Scene
     {
-        public static CodeCompileUnit Generate(Scene scene)
+        public static CodeCompileUnit Generate(Scene scene, CodeGeneratorContext context)
         {
             var code = new CodeCompileUnit();
-            var ns = new CodeNamespace("SkillFlow");
+            var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
