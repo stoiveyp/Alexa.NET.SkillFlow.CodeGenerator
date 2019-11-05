@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.CodeDom;
+using System.Threading.Tasks;
+using Alexa.NET.Response;
+using Alexa.NET.Response.APL;
 using Alexa.NET.SkillFlow.Generator;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -16,13 +19,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var code = CodeGeneration_Scene.Generate(scene, context);
             var sceneClass = code.Namespaces[0].Types[0];
             context.CodeFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
-            context.CurrentClass = sceneClass;
+            context.CodeScope.Push(sceneClass);
             return base.Begin(scene, context);
         }
 
         protected override Task Begin(Text text, CodeGeneratorContext context)
         {
-            var generate = context.CurrentClass.GetGenerateMethod();
+            var generate = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
             generate.CleanIfEmpty();
 
             switch (text.TextType.ToLower())
@@ -40,15 +43,50 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return base.Begin(text, context);
         }
 
+        protected override Task Begin(Visual story, CodeGeneratorContext context)
+        {
+            var gen = ((CodeTypeDeclaration) context.CodeScope.Peek()).GetGenerateMethod();
+            gen.CleanIfEmpty();
+
+            var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
+
+            context.CodeScope.Push(aplRef);
+            return base.Begin(story, context);
+        }
+
+        protected override Task End(Visual story, CodeGeneratorContext context)
+        {
+            context.CodeScope.Pop();
+            return base.End(story, context);
+        }
+
         protected override Task Render(VisualProperty property, CodeGeneratorContext context)
         {
+            var render = context.CodeScope.Pop() as CodeVariableReferenceExpression;
+            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
             switch (property.Key)
             {
                 case "template":
-                    CodeGeneration_Visuals.GenerateAplCall(context,property.Value);
+                    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context,property.Value);
+                    gen.Statements.Add(new CodeAssignStatement(
+                        new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
+                        layoutCall));
                     break;
+                case "background":
+                    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen,"apl");
+                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
+                    break;
+                case "title":
+                    var titleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(titleDs, "title", property.Value));
+                    break;
+                case "subtitle":
+                    var subtitleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(subtitleDs, "subtitle", property.Value));
+                    break;
+
             }
-            
+            context.CodeScope.Push(render);
             return Noop(context);
         }
     }

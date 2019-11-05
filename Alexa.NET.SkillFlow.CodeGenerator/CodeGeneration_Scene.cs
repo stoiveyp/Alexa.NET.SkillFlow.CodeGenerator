@@ -17,6 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL.DataSources"));
             code.Namespaces.Add(ns);
 
             var mainClass = GenerateSceneClass(scene);
