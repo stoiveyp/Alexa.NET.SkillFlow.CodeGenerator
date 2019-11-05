@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Alexa.NET.Response;
 using Alexa.NET.Response.APL;
 using Alexa.NET.SkillFlow.Generator;
+using Alexa.NET.SkillFlow.Instructions;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -88,6 +89,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             context.CodeScope.Push(render);
             return Noop(context);
+        }
+
+        protected override Task Render(SceneInstruction instruction, CodeGeneratorContext context)
+        {
+            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
+            gen.CleanIfEmpty();
+
+            switch (instruction)
+            {
+                case GoTo gto:
+                    gen.Statements.Add(new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression(CodeGeneration_Scene.SceneClassName(gto.SceneName)),
+                        "Generate",
+                        new CodeVariableReferenceExpression("request"),
+                        new CodeVariableReferenceExpression("responseBody")));
+                    break;
+            }
+            return base.Render(instruction, context);
         }
     }
 }
