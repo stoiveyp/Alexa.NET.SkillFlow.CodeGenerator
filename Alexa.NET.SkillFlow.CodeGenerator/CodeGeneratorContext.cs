@@ -37,21 +37,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public async Task Output(string directoryFullName)
         {
-            var json = JsonSerializer.Create();
+            var json = JsonSerializer.Create(new JsonSerializerSettings{Formatting = Newtonsoft.Json.Formatting.Indented});
             foreach (var supplemental in OtherFiles)
             {
-                using (var supplementalStream = File.OpenWrite(Path.Combine(directoryFullName, supplemental.Key)))
+                var writer = File.OpenWrite(Path.Combine(directoryFullName, supplemental.Key));
+                if (supplemental.Value is Stream suppStream)
                 {
-                    if (supplemental.Value is Stream suppStream)
+                    using (writer)
                     {
                         suppStream.Seek(0, SeekOrigin.Begin);
-                        await suppStream.CopyToAsync(supplementalStream);
+                        await suppStream.CopyToAsync(writer);
                     }
-                    else
+                }
+                else
+                {
+                    using (var jsonWriter = new JsonTextWriter(new StreamWriter(writer)))
                     {
-                        json.Serialize(new JsonTextWriter(new StreamWriter(supplementalStream)),supplemental.Value);
+                        json.Serialize(jsonWriter, supplemental.Value);
                     }
-
                 }
             }
 
