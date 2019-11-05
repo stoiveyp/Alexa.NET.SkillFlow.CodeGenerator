@@ -8,6 +8,8 @@ using System.Xml;
 using System.Xml.Linq;
 using Alexa.NET.Management.Skills;
 using Alexa.NET.SkillFlow.Generator;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -26,7 +28,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public SkillInteraction InteractionModel { get; set; }
 
-        public Dictionary<string, MemoryStream> OtherFiles { get; set; } = new Dictionary<string, MemoryStream>();
+        public Dictionary<string, object> OtherFiles { get; set; } = new Dictionary<string, object>();
 
         public Dictionary<string, CodeCompileUnit> CodeFiles { get; } = new Dictionary<string, CodeCompileUnit>();
 
@@ -35,12 +37,21 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public async Task Output(string directoryFullName)
         {
+            var json = JsonSerializer.Create();
             foreach (var supplemental in OtherFiles)
             {
                 using (var supplementalStream = File.OpenWrite(Path.Combine(directoryFullName, supplemental.Key)))
                 {
-                    supplemental.Value.Seek(0, SeekOrigin.Begin);
-                    await supplemental.Value.CopyToAsync(supplementalStream);
+                    if (supplemental.Value is Stream suppStream)
+                    {
+                        suppStream.Seek(0, SeekOrigin.Begin);
+                        await suppStream.CopyToAsync(supplementalStream);
+                    }
+                    else
+                    {
+                        json.Serialize(new JsonTextWriter(new StreamWriter(supplementalStream)),supplemental.Value);
+                    }
+
                 }
             }
 

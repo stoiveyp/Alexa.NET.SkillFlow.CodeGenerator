@@ -1,6 +1,9 @@
 ﻿using System.CodeDom;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Alexa.NET.Response.APL;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -9,12 +12,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void GenerateAplCall(CodeGeneratorContext context, string layout)
         {
             EnsureAPLHelper(context);
-            AddBlankLayout(context,layout);
+            AddLayout(context,layout);
         }
 
-        private static void AddBlankLayout(CodeGeneratorContext context, string layout)
+        private static void AddLayout(CodeGeneratorContext context, string layout)
         {
-            throw new System.NotImplementedException();
+            if (!context.OtherFiles.ContainsKey("apldocuments.json"))
+            {
+                context.OtherFiles.Add("apldocuments.json", new JObject());
+            }
+
+            var layouts = context.OtherFiles["apldocuments.json"] as JObject;
+
+            if (layouts.ContainsKey(layout))
+            {
+                return;
+            }
+
+            layouts.Add(layout,new JObject());
         }
 
 
@@ -27,7 +42,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var code = new CodeCompileUnit();
             var ns = new CodeNamespace(context.Options.SafeRootNamespace);
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response.APL"));
+            ns.Imports.Add(new CodeNamespaceImport("System.IO"));
+            ns.Imports.Add(new CodeNamespaceImport("Newtonsoft.Json"));
             code.Namespaces.Add(ns);
 
             var randomiserClass = CodeGeneration_Visuals.GenerateHelper();
@@ -38,18 +55,64 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static CodeTypeDeclaration GenerateHelper()
         {
-            var classCode = new CodeTypeDeclaration("APLHelper");
+            var classCode = new CodeTypeDeclaration("APLHelper")
+            {
+                Attributes = MemberAttributes.Static | MemberAttributes.Public
+            };
 
+
+            classCode.Members.Add(LayoutContainer());
+            classCode.Members.Add(GenerateConstructor());
+            classCode.Members.Add(GenerateGetLayout());
+
+            return classCode;
+        }
+
+        private static CodeTypeMember LayoutContainer()
+        {
+            return new CodeMemberField(typeof(Dictionary<string, Layout>), "_apl")
+            {
+                Attributes = MemberAttributes.Static,
+                InitExpression = new CodeObjectCreateExpression(typeof(Dictionary<string,Layout>))
+            };
+        }
+
+        private static CodeTypeMember GenerateConstructor()
+        {
+            var constructor = new CodeConstructor
+            {
+                Attributes = MemberAttributes.Static,
+                Name = "APLHelper"
+            };
+
+            constructor.Statements.Add(new CodeSnippetStatement(
+                "using (var reader = new JsonTextReader(new StreamReader(File.OpenRead(\"apldocuments.json\"))))"));
+            constructor.Statements.Add(new CodeSnippetStatement("{"));
+
+            var deserialize = new CodeMethodInvokeExpression(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(JsonSerializer)),"Create"),
+                "Deserialize",new CodeVariableReferenceExpression("reader"));
+            constructor.Statements.Add(deserialize);
+
+            constructor.Statements.Add(new CodeSnippetStatement("}"));
+
+            return constructor;
+        }
+
+        private static CodeTypeMember GenerateGetLayout()
+        {
             var getLayout = new CodeMemberMethod
             {
                 Name = "GetLayout",
                 Attributes = MemberAttributes.Public,
-                ReturnType = new CodeTypeReference(typeof(APLDocument))
+                ReturnType = new CodeTypeReference(typeof(Layout)),
             };
             getLayout.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "name"));
 
-            classCode.Members.Add(getLayout);
-            return classCode;
+            getLayout.Statements.Add(new CodeMethodReturnStatement(new CodeIndexerExpression(new CodeVariableReferenceExpression("_apl"),
+                new CodeVariableReferenceExpression("name"))));
+
+            return getLayout;
         }
     }
 }
