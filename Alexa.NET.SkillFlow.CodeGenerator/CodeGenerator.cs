@@ -91,19 +91,78 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return Noop(context);
         }
 
-        protected override Task Render(SceneInstruction instruction, CodeGeneratorContext context)
+        protected override Task Begin(SceneInstructions instructions, CodeGeneratorContext context)
         {
             var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
             gen.CleanIfEmpty();
+            gen.Comments.Add(new CodeCommentStatement($"TODO: Turn the scene into a handler for {instructions.Type}"));
+            return base.Begin(instructions, context);
+        }
+
+        protected override Task Begin(SceneInstructionContainer instructions, CodeGeneratorContext context)
+        {
+            CodeStatementCollection statements;
+            if (context.CodeScope.Peek() is CodeTypeDeclaration)
+            {
+                statements = ((CodeTypeDeclaration) context.CodeScope.Peek()).GetGenerateMethod().Statements;
+            }
+            else
+            {
+                statements = ((CodeConditionStatement) context.CodeScope.Peek()).TrueStatements;
+            }
+
+            if (instructions is If ifstmt)
+            {
+                var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
+                statements.Add(codeIf);
+                context.CodeScope.Push(codeIf);
+            }
+            else if (instructions is Hear hear)
+            {
+                statements.Add(new CodeMethodReturnStatement());
+            }
+
+
+            return base.Begin(instructions, context);
+        }
+
+        protected override Task End(SceneInstructionContainer instructions, CodeGeneratorContext context)
+        {
+            if (context.CodeScope.Peek() is CodeConditionStatement)
+            {
+                context.CodeScope.Pop();
+            }
+            return base.End(instructions, context);
+        }
+
+        protected override Task Render(SceneInstruction instruction, CodeGeneratorContext context)
+        {
+            CodeStatementCollection statements;
+            switch (context.CodeScope.Peek())
+            {
+                case CodeMemberMethod member:
+                    statements = member.Statements;
+                    break;
+                case CodeTypeDeclaration codeType:
+                    statements = codeType.GetGenerateMethod().Statements;
+                    break;
+                case CodeConditionStatement stmt:
+                    statements = stmt.TrueStatements;
+                    break;
+                default:
+                    return Noop(context);
+            }
+
 
             switch (instruction)
             {
                 case GoTo gto:
-                    gen.Statements.Add(new CodeMethodInvokeExpression(
+                    statements.Add(new CodeMethodInvokeExpression(
                         new CodeTypeReferenceExpression(CodeGeneration_Scene.SceneClassName(gto.SceneName)),
                         "Generate",
                         new CodeVariableReferenceExpression("request"),
                         new CodeVariableReferenceExpression("responseBody")));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
             }
             return base.Render(instruction, context);
