@@ -158,7 +158,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 case GoTo gto:
                     statements.Add(new CodeMethodInvokeExpression(
-                        new CodeTypeReferenceExpression(CodeGeneration_Scene.SceneClassName(gto.SceneName)),
+                        new CodeTypeReferenceExpression("await " + CodeGeneration_Scene.SceneClassName(gto.SceneName)),
                         "Generate",
                         new CodeVariableReferenceExpression("request"),
                         new CodeVariableReferenceExpression("responseBody")));
