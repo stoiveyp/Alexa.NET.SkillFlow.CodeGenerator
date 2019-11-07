@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml;
@@ -60,17 +61,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
             {
-                foreach (var codefile in CodeFiles)
+                await Task.WhenAll(CodeFiles.Select(async c =>
                 {
                     using (var textWriter =
-                        new StreamWriter(File.OpenWrite(Path.Combine(directoryFullName, codefile.Key) + ".cs")))
+                        new StreamWriter(File.OpenWrite(Path.Combine(directoryFullName, c.Key) + ".cs")))
                     {
                         csharp.GenerateCodeFromCompileUnit(
-                            codefile.Value,
+                            c.Value,
                             textWriter,
                             new System.CodeDom.Compiler.CodeGeneratorOptions());
+                        await textWriter.FlushAsync();
                     }
-                }
+
+                }));
             }
         }
     }

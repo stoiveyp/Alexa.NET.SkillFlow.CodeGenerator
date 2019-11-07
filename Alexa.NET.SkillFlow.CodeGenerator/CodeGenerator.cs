@@ -1,4 +1,5 @@
 ﻿using System.CodeDom;
+using System.Linq;
 using System.Threading.Tasks;
 using Alexa.NET.Response;
 using Alexa.NET.Response.APL;
@@ -119,7 +120,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             else if (instructions is Hear hear)
             {
-                statements.Add(new CodeMethodReturnStatement());
+                var marker = CodeGeneration_Interaction.AddMarker(context, hear.Instructions);
+                CodeGeneration_Interaction.AddIntent(context, hear.Phrases, marker);
+                
+                if (!(statements.Count > 0 && statements[statements.Count-1] is CodeMethodReturnStatement))
+                {
+                    statements.Add(new CodeMethodReturnStatement());
+                }
             }
 
 
