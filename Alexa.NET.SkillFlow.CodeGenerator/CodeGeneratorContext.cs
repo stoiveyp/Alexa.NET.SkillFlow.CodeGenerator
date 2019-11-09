@@ -3,14 +3,11 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
+using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Management.Skills;
 using Alexa.NET.SkillFlow.Generator;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -24,10 +21,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public CodeGeneratorContext(CodeGeneratorOptions options)
         {
             Options = options ?? CodeGeneratorOptions.Default;
-            InteractionModel = new SkillInteraction();
         }
 
-        public SkillInteraction InteractionModel { get; set; }
+        public string InvocationName { get; set; } = "Skill Flow";
+
+        public Language Language { get; set; } = new Language();
 
         public Dictionary<string, object> OtherFiles { get; set; } = new Dictionary<string, object>();
 
@@ -35,13 +33,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public CodeGeneratorOptions Options { get; protected set; }
         public Stack<CodeObject> CodeScope { get; set; } = new Stack<CodeObject>();
+        public string Marker => string.Concat(CodeScope.OfType<CodeMemberMethod>().Select(c => c.Name));
 
         public async Task Output(string directoryFullName)
         {
             var json = JsonSerializer.Create(new JsonSerializerSettings{Formatting = Newtonsoft.Json.Formatting.Indented});
             foreach (var supplemental in OtherFiles)
             {
-                var writer = File.OpenWrite(Path.Combine(directoryFullName, supplemental.Key));
+                var writer = File.Open(Path.Combine(directoryFullName, supplemental.Key),FileMode.Create,FileAccess.Write);
                 if (supplemental.Value is Stream suppStream)
                 {
                     using (writer)
@@ -59,12 +58,29 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 }
             }
 
+            var oldName = Language.InvocationName;
+            Language.InvocationName = InvocationName;
+            using (var manifestStream = File.Open(Path.Combine(directoryFullName, "skillManifest.json"), FileMode.Create, FileAccess.Write))
+            {
+                using (var jsonWriter = new JsonTextWriter(new StreamWriter(manifestStream)))
+                {
+                    var interactionModel = new SkillInteraction
+                    {
+                        Language = Language
+                    };
+                    json.Serialize(jsonWriter, interactionModel);
+                    await jsonWriter.FlushAsync();
+                }
+            }
+
+            Language.InvocationName = oldName;
+
             using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
             {
                 await Task.WhenAll(CodeFiles.Select(async c =>
                 {
                     using (var textWriter =
-                        new StreamWriter(File.OpenWrite(Path.Combine(directoryFullName, c.Key) + ".cs")))
+                        new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
                     {
                         csharp.GenerateCodeFromCompileUnit(
                             c.Value,

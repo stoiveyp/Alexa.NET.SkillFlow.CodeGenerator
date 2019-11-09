@@ -120,13 +120,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             else if (instructions is Hear hear)
             {
-                var marker = CodeGeneration_Interaction.AddMarker(context, hear.Instructions);
-                CodeGeneration_Interaction.AddIntent(context, hear.Phrases, marker);
-                
-                if (!(statements.Count > 0 && statements[statements.Count-1] is CodeMethodReturnStatement))
+
+                if (!(statements.Count > 0 && statements[statements.Count - 1] is CodeMethodReturnStatement))
                 {
+                    statements.AddMarker(context);
                     statements.Add(new CodeMethodReturnStatement());
                 }
+
+                
+                CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
             }
 
 
@@ -139,6 +141,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 context.CodeScope.Pop();
             }
+
             return base.End(instructions, context);
         }
 

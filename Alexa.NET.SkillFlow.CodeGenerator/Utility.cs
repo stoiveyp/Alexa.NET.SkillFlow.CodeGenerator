@@ -9,6 +9,21 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class Utility
     {
+        public static T[] Add<T>(this T[] array, params T[] toAdd)
+        {
+            return Add(array, toAdd.AsEnumerable());
+        }
+
+        public static T[] Add<T>(this T[] array, IEnumerable<T> toAdd)
+        {
+            return (array ?? new T[]{ }).Concat(toAdd).ToArray();
+        }
+
+        public static void AddMarker(this CodeStatementCollection statements, CodeGeneratorContext context)
+        {
+
+        }
+
         public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)
         {
             return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == "Generate");

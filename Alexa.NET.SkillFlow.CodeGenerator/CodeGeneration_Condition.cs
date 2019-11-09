@@ -13,11 +13,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             switch (condition)
             {
                 case Variable variable:
-                    var typeArg = typeof(object);
-                    if (comparisonType is LiteralValue lit)
-                    {
-                        typeArg = lit.Value.GetType();
-                    }
+                    var typeArg = ComparisonType(comparisonType);
                     var method = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("await request.State"),"Get",new CodePrimitiveExpression(variable.Name));
                     method.Method.TypeArguments.Add(typeArg);
                     return method;
@@ -45,6 +41,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             }
             return new CodePrimitiveExpression("Unable to convert " + condition.GetType().Name);
+        }
+
+        private static Type ComparisonType(Value comparisonType)
+        {
+            switch (comparisonType)
+            {
+                case LiteralValue lit:
+                    return lit.Value.GetType();
+                default:
+                    return typeof(bool);
+            }
         }
 
         private static CodeBinaryOperatorExpression Binary(BinaryCondition condition, CodeBinaryOperatorType type)

@@ -20,15 +20,23 @@ namespace Alexa.NET.SkillFlow.Tool
             }
 
             Story story;
-            using (var reader = File.OpenRead("story.abc"))
+            var file = new FileInfo("story.abc");
+            using (var reader = file.OpenRead())
             {
                 story = await new SkillFlowInterpreter().Interpret(reader);
             }
-                    
+
 
             var context = new CodeGeneratorContext();
             var generator = new CodeGenerator.CodeGenerator();
             await generator.Generate(story, context);
+
+            var newStoryStream = new MemoryStream { Capacity = (int)file.Length };
+            using (var tempStream = file.OpenRead())
+            {
+                tempStream.CopyTo(newStoryStream);
+            }
+            context.OtherFiles.Add(file.Name, newStoryStream);
             await context.Output(directory.FullName);
         }
     }
