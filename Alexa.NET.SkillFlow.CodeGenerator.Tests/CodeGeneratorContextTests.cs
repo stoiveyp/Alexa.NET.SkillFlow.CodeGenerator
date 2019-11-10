@@ -24,7 +24,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
         public void ContextSetsDefaultOutput()
         {
             var context = new CodeGeneratorContext();
-            Assert.NotNull(context.CodeFiles);
+            Assert.NotNull(context.SceneFiles);
             Assert.NotNull(context.Language);
         }
     }

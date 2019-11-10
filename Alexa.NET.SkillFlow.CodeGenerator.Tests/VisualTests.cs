@@ -14,7 +14,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
         {
             var story = TestStory();
             var context = await GenerateTestStory(story);
-            Assert.True(context.CodeFiles.ContainsKey("APLHelper"));
+            Assert.True(context.SceneFiles.ContainsKey("APLHelper"));
         }
 
         [Fact]

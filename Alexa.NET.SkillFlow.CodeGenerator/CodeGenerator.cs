@@ -20,7 +20,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var code = CodeGeneration_Scene.Generate(scene, context);
             var sceneClass = code.Namespaces[0].Types[0];
-            context.CodeFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
+            context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
             return base.Begin(scene, context);
         }

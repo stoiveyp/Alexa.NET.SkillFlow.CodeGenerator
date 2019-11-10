@@ -9,12 +9,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
     {
         public static CodeTypeDeclaration GetClass(this CodeGeneratorContext context, string filenameWithoutExtension)
         {
-            if (!context.CodeFiles.ContainsKey(filenameWithoutExtension))
+            if (!context.SceneFiles.ContainsKey(filenameWithoutExtension))
             {
                 throw new KeyNotFoundException("Unable to find code with the name " + filenameWithoutExtension);
             }
 
-            var codeDom = context.CodeFiles[filenameWithoutExtension];
+            var codeDom = context.SceneFiles[filenameWithoutExtension];
             var type = Assert.Single(codeDom.Namespaces[0].Types);
             var classType = Assert.IsType<CodeTypeDeclaration>(type);
             return classType;

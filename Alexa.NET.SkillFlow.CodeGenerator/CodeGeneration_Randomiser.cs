@@ -117,7 +117,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void Ensure(CodeGeneratorContext context)
         {
-            if (context.CodeFiles.ContainsKey("Randomiser"))
+            if (context.SceneFiles.ContainsKey("Randomiser"))
             {
                 return;
             }
@@ -130,7 +130,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var randomiserClass = CodeGeneration_Randomiser.Generate();
             ns.Types.Add(randomiserClass);
 
-            context.CodeFiles.Add("Randomiser", code);
+            context.SceneFiles.Add("Randomiser", code);
         }
     }
 }

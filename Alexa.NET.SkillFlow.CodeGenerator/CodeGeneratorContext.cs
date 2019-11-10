@@ -29,15 +29,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public Dictionary<string, object> OtherFiles { get; set; } = new Dictionary<string, object>();
 
-        public Dictionary<string, CodeCompileUnit> CodeFiles { get; } = new Dictionary<string, CodeCompileUnit>();
+        public Dictionary<string, CodeCompileUnit> RequestHandlers { get; set; } = new Dictionary<string, CodeCompileUnit>();
+
+        public Dictionary<string, CodeCompileUnit> SceneFiles { get; } = new Dictionary<string, CodeCompileUnit>();
 
         public CodeGeneratorOptions Options { get; protected set; }
         public Stack<CodeObject> CodeScope { get; set; } = new Stack<CodeObject>();
-        public string Marker => string.Join("_",CodeScope.Reverse().Select(GetName));
+        public string Marker => string.Join("_", CodeScope.Reverse().Select(GetName));
 
         private string GetName(CodeObject codeScope)
         {
-            switch(codeScope)
+            switch (codeScope)
             {
                 case CodeMemberMethod method:
                     return method.Name;
@@ -50,10 +52,62 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public async Task Output(string directoryFullName)
         {
-            var json = JsonSerializer.Create(new JsonSerializerSettings{Formatting = Newtonsoft.Json.Formatting.Indented});
+            var json = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
+            await OutputRootFiles(json, directoryFullName);
+
+            using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
+            {
+                var sceneFileDirectory = Path.Combine(directoryFullName, "Scenes");
+                Directory.CreateDirectory(sceneFileDirectory);
+                await OutputSceneFiles(csharp, sceneFileDirectory);
+
+                var handlerFileDirectory = Path.Combine(directoryFullName, "RequestHandlers");
+                Directory.CreateDirectory(handlerFileDirectory);
+                await OutputRequestHandlers(csharp, handlerFileDirectory);
+            }
+
+        }
+
+        private async Task OutputRequestHandlers(CodeDomProvider csharp, string directoryFullName)
+        {
+            await Task.WhenAll(RequestHandlers.Select(async c =>
+                {
+                    using (var textWriter =
+                        new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
+                    {
+                        csharp.GenerateCodeFromCompileUnit(
+                            c.Value,
+                            textWriter,
+                            new System.CodeDom.Compiler.CodeGeneratorOptions());
+                        await textWriter.FlushAsync();
+                    }
+
+                }));
+        }
+
+        private async Task OutputSceneFiles(CodeDomProvider csharp, string directoryFullName)
+        {
+
+            await Task.WhenAll(SceneFiles.Select(async c =>
+            {
+                using (var textWriter =
+                    new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
+                {
+                    csharp.GenerateCodeFromCompileUnit(
+                        c.Value,
+                        textWriter,
+                        new System.CodeDom.Compiler.CodeGeneratorOptions());
+                    await textWriter.FlushAsync();
+                }
+
+            }));
+        }
+
+        private async Task OutputRootFiles(JsonSerializer json, string directoryFullName)
+        {
             foreach (var supplemental in OtherFiles)
             {
-                var writer = File.Open(Path.Combine(directoryFullName, supplemental.Key),FileMode.Create,FileAccess.Write);
+                var writer = File.Open(Path.Combine(directoryFullName, supplemental.Key), FileMode.Create, FileAccess.Write);
                 if (supplemental.Value is Stream suppStream)
                 {
                     using (writer)
@@ -88,22 +142,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             Language.InvocationName = oldName;
 
-            using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
-            {
-                await Task.WhenAll(CodeFiles.Select(async c =>
-                {
-                    using (var textWriter =
-                        new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
-                    {
-                        csharp.GenerateCodeFromCompileUnit(
-                            c.Value,
-                            textWriter,
-                            new System.CodeDom.Compiler.CodeGeneratorOptions());
-                        await textWriter.FlushAsync();
-                    }
 
-                }));
-            }
         }
     }
 }

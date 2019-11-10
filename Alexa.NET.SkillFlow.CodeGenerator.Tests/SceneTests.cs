@@ -14,14 +14,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
         public async Task SceneCreatesNewCompilationUnit()
         {
             var context = await GenerateTestStory();
-            Assert.Single(context.CodeFiles);
+            Assert.Single(context.SceneFiles);
         }
 
         [Fact]
         public async Task SceneCreatesCorrectNamespace()
         {
             var context = await GenerateTestStory();
-            var codeDom = Assert.Single(context.CodeFiles);
+            var codeDom = Assert.Single(context.SceneFiles);
             Assert.Equal("SkillFlowGenerated",codeDom.Value.Namespaces[0].Name);
         }
 

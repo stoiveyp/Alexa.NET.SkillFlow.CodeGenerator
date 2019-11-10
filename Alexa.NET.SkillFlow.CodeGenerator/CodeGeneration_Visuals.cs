@@ -39,7 +39,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static void EnsureAPLHelper(CodeGeneratorContext context)
         {
-            if (context.CodeFiles.ContainsKey("APLHelper"))
+            if (context.SceneFiles.ContainsKey("APLHelper"))
             {
                 return;
             }
@@ -54,7 +54,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var randomiserClass = CodeGeneration_Visuals.GenerateHelper();
             ns.Types.Add(randomiserClass);
 
-            context.CodeFiles.Add("APLHelper", code);
+            context.SceneFiles.Add("APLHelper", code);
         }
 
         private static CodeTypeDeclaration GenerateHelper()
