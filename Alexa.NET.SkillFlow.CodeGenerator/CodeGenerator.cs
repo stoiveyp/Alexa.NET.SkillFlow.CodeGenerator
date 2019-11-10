@@ -25,6 +25,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return base.Begin(scene, context);
         }
 
+        protected override Task End(Scene scene, CodeGeneratorContext context)
+        {
+            context.CodeScope.Pop();
+            return base.End(scene, context);
+        }
+
         protected override Task Begin(Text text, CodeGeneratorContext context)
         {
             var generate = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
@@ -103,9 +109,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(SceneInstructionContainer instructions, CodeGeneratorContext context)
         {
             CodeStatementCollection statements;
-            if (context.CodeScope.Peek() is CodeTypeDeclaration)
+            if (context.CodeScope.Peek() is CodeTypeDeclaration type)
             {
-                statements = ((CodeTypeDeclaration) context.CodeScope.Peek()).GetGenerateMethod().Statements;
+                statements = type.GetGenerateMethod().Statements;
+            }
+            else if (context.CodeScope.Peek() is CodeMemberMethod member)
+            {
+                statements = member.Statements;
             }
             else
             {
@@ -120,14 +130,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             else if (instructions is Hear hear)
             {
-
                 if (!(statements.Count > 0 && statements[statements.Count - 1] is CodeMethodReturnStatement))
                 {
-                    statements.AddMarker(context);
-                    statements.Add(new CodeMethodReturnStatement());
+                    CodeGeneration_Interaction.AddHearMarker(context);
                 }
 
-                
                 CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
             }
 
@@ -137,7 +144,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         protected override Task End(SceneInstructionContainer instructions, CodeGeneratorContext context)
         {
-            if (context.CodeScope.Peek() is CodeConditionStatement)
+            if (context.CodeScope.Peek() is CodeConditionStatement || context.CodeScope.Peek() is CodeMemberMethod)
             {
                 context.CodeScope.Pop();
             }

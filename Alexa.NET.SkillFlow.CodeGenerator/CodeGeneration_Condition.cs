@@ -19,6 +19,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     return method;
                 case LiteralValue literal:
                     return new CodePrimitiveExpression(literal.Value);
+                case ValueWrapper wrapper:
+                    return Generate(wrapper.Value);
                 case Equal equal:
                     return Binary(equal,CodeBinaryOperatorType.ValueEquality);
                 case GreaterThan gt:

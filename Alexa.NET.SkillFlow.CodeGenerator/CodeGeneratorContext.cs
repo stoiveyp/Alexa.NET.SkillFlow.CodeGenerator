@@ -33,7 +33,20 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public CodeGeneratorOptions Options { get; protected set; }
         public Stack<CodeObject> CodeScope { get; set; } = new Stack<CodeObject>();
-        public string Marker => string.Concat(CodeScope.OfType<CodeMemberMethod>().Select(c => c.Name));
+        public string Marker => string.Join("_",CodeScope.Reverse().Select(GetName));
+
+        private string GetName(CodeObject codeScope)
+        {
+            switch(codeScope)
+            {
+                case CodeMemberMethod method:
+                    return method.Name;
+                case CodeTypeDeclaration type:
+                    return type.Name;
+                default:
+                    return "unknown";
+            }
+        }
 
         public async Task Output(string directoryFullName)
         {

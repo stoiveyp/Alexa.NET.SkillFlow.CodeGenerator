@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using Alexa.NET.Response;
 
@@ -19,9 +20,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return (array ?? new T[]{ }).Concat(toAdd).ToArray();
         }
 
-        public static void AddMarker(this CodeStatementCollection statements, CodeGeneratorContext context)
+        public static void AddResponseParams(this CodeMemberMethod method)
         {
-
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "responseBody"));
         }
 
         public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)
