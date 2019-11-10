@@ -15,6 +15,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static void AddHearMarker(CodeGeneratorContext context)
         {
+            //TODO: Add statement that sets marker variable as string - used for shared markers to know which call to make
+
             while (context.CodeScope.Peek().GetType() != typeof(CodeTypeDeclaration))
             {
                 context.CodeScope.Pop();
@@ -41,16 +43,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 hearPhrases.Remove("*");
             }
 
-            //Add to Skill
             var dictionary = hearPhrases.ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
 
             var nulls = dictionary.Where(kvp => kvp.Value == null).ToArray();
 
+            var intentName = "Intent_" + context.Marker;
             if (nulls.Any())
             {
                 var intent = new IntentType
                 {
-                    Name = context.Marker,
+                    Name = intentName,
                     Samples = nulls.Select(kvp => kvp.Key).ToArray()
                 };
 
@@ -58,28 +60,33 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
                 foreach (var it in nulls.ToArray())
                 {
-                    CreateIntentRequestHandler(context);
+                    CreateIntentRequestHandler(context, intentName);
                     dictionary[it.Key] = intent;
                 }
             }
 
-            foreach(var shared in dictionary.Keys.Except(nulls.Select(n => n.Key)))
-            {
-                Console.WriteLine(shared);
-            }
+            //TODO: Isolate shared handlers - like "yes"
 
+            //TODO: Handle fallback handlers
             if (fallback)
             {
                 //dictionary.Add("*",EnsureFallbackRequestHandler(context));
             }
+
+            //TODO: Add RequestHandler Call to each handler based on marker
+            foreach (var shared in dictionary.Keys.Except(nulls.Select(n => n.Key)))
+            {
+                Console.WriteLine(shared);
+            }
+
+            
         }
 
-        public static CodeCompileUnit CreateIntentRequestHandler(CodeGeneratorContext context)
+        public static CodeCompileUnit CreateIntentRequestHandler(CodeGeneratorContext context, string intentName)
         {
-            var rhName = "Intent_" + context.Marker;
-            if (context.RequestHandlers.ContainsKey(rhName))
+            if (context.RequestHandlers.ContainsKey(intentName))
             {
-                return context.RequestHandlers[rhName];
+                return context.RequestHandlers[intentName];
             }
 
             var code = new CodeCompileUnit();
@@ -90,13 +97,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
             code.Namespaces.Add(ns);
 
-            var mainClass = GenerateHandlerClass(rhName);
+            var mainClass = GenerateHandlerClass(intentName,context);
             ns.Types.Add(mainClass);
-            context.RequestHandlers.Add(rhName, code);
+            context.RequestHandlers.Add(intentName, code);
             return code;
         }
 
-        private static CodeTypeDeclaration GenerateHandlerClass(string rhName)
+        private static CodeTypeDeclaration GenerateHandlerClass(string rhName, CodeGeneratorContext context)
         {
             var mainClass = new CodeTypeDeclaration(rhName)
             {
@@ -125,8 +132,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     "information"));
 
             method.Statements.Add(
-                new CodeThrowExceptionStatement(new CodeObjectCreateExpression(typeof(NotImplementedException))));
+                new CodeVariableDeclarationStatement(
+                    new CodeTypeReference("var"),
+                    "response",
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)), "Empty")
+                )
+            );
 
+            var methodCall = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
+                ((CodeMemberMethod) context.CodeScope.First()).Name,
+                new CodeVariableReferenceExpression("information"),
+                new CodeVariableReferenceExpression("response"));
+            method.Statements.Add(methodCall);
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
+
+            
             mainClass.Members.Add(method);
             return mainClass;
         }
