@@ -17,7 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 return context.RequestHandlers[launchRequestName];
             }
 
-            var mainClass = CodeGeneration_RequestHandlers.GenerateLaunchHandler(launchRequestName, context);
+            var mainClass = GenerateLaunchHandler(launchRequestName, context);
             return CreateRequestHandlerUnit(context, launchRequestName, mainClass);
         }
 
@@ -28,7 +28,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 return context.RequestHandlers[intentName];
             }
 
-            var mainClass = CodeGeneration_RequestHandlers.GenerateIntentHandler(intentName, context);
+            var mainClass = GenerateIntentHandler(intentName, context);
             return CreateRequestHandlerUnit(context, intentName, mainClass);
         }
 
@@ -64,7 +64,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static CodeTypeDeclaration GenerateIntentHandler(string className, CodeGeneratorContext context)
         {
-            return GenerateHandlerClass(context, className, mainClass =>
+            return GenerateHandlerClass(context, className.Safe(), mainClass =>
             {
                 mainClass.BaseTypes.Add(new CodeTypeReference(typeof(IntentNameRequestHandler<APLSkillRequest>)));
 

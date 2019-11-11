@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Alexa.NET.Request;
@@ -12,6 +13,23 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class Utility
     {
+        public static string Safe(this string candidate)
+        {
+            var osb = new StringBuilder();
+            foreach (char s in candidate)
+            {
+                if (s == ' ' || !char.IsLetterOrDigit(s))
+                {
+                    osb.Append('_');
+                    continue;
+                }
+
+                osb.Append(s);
+            }
+
+            return osb.ToString();
+        }
+
         public static T[] Add<T>(this T[] array, params T[] toAdd)
         {
             return Add(array, toAdd.AsEnumerable());
@@ -19,7 +37,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static T[] Add<T>(this T[] array, IEnumerable<T> toAdd)
         {
-            return (array ?? new T[]{ }).Concat(toAdd).ToArray();
+            return (array ?? new T[] { }).Concat(toAdd).ToArray();
         }
 
         public static void AddResponseParams(this CodeMemberMethod method)
@@ -65,7 +83,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 return new CodeVariableReferenceExpression(varNames.First());
             }
-            
+
             var generatorCall = new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("Randomiser"),
                 "PickRandom",
@@ -82,7 +100,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), varName)
             {
-                InitExpression = new CodeObjectCreateExpression(creationType,new CodePrimitiveExpression(content))
+                InitExpression = new CodeObjectCreateExpression(creationType, new CodePrimitiveExpression(content))
             });
             return varName;
         }

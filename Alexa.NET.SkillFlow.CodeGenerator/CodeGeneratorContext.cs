@@ -73,7 +73,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             await Task.WhenAll(RequestHandlers.Select(async c =>
                 {
                     using (var textWriter =
-                        new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
+                        new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key.Safe()) + ".cs", FileMode.Create, FileAccess.Write)))
                     {
                         csharp.GenerateCodeFromCompileUnit(
                             c.Value,
@@ -91,7 +91,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             await Task.WhenAll(SceneFiles.Select(async c =>
             {
                 using (var textWriter =
-                    new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key) + ".cs", FileMode.Create, FileAccess.Write)))
+                    new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key.Safe()) + ".cs", FileMode.Create, FileAccess.Write)))
                 {
                     csharp.GenerateCodeFromCompileUnit(
                         c.Value,

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Request;
+using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
 using Alexa.NET.Response;
@@ -71,6 +72,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             //TODO: Handle fallback handlers
             if (fallback)
             {
+                context.CreateIntentRequestHandler(BuiltInIntent.Fallback);
                 //dictionary.Add("*",EnsureFallbackRequestHandler(context));
             }
 
