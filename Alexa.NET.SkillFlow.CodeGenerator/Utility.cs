@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
+using Alexa.NET.Request;
+using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -84,5 +86,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             });
             return varName;
         }
+
+
     }
 }

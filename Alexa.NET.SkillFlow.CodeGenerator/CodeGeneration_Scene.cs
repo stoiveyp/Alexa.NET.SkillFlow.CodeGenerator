@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Alexa.NET.Request;
+using Alexa.NET.RequestHandlers.Handlers;
 using Alexa.NET.Response;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator

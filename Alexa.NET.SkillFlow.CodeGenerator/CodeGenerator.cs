@@ -1,4 +1,5 @@
-﻿using System.CodeDom;
+﻿using System;
+using System.CodeDom;
 using System.Linq;
 using System.Threading.Tasks;
 using Alexa.NET.Response;
@@ -22,18 +23,26 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var sceneClass = code.Namespaces[0].Types[0];
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
+            context.CodeScope.Push(sceneClass.GetGenerateMethod());
+
+            if (scene.Name.Equals("start", StringComparison.OrdinalIgnoreCase))
+            {
+                context.CreateLaunchRequestHandler();
+            }
+
             return base.Begin(scene, context);
         }
 
         protected override Task End(Scene scene, CodeGeneratorContext context)
         {
-            context.CodeScope.Pop();
+            context.CodeScope.Clear();
+
             return base.End(scene, context);
         }
 
         protected override Task Begin(Text text, CodeGeneratorContext context)
         {
-            var generate = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
+            var generate = (CodeMemberMethod)context.CodeScope.Peek();
             generate.CleanIfEmpty();
 
             switch (text.TextType.ToLower())
@@ -53,7 +62,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         protected override Task Begin(Visual story, CodeGeneratorContext context)
         {
-            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
+            var gen = (CodeMemberMethod)context.CodeScope.Peek();
             gen.CleanIfEmpty();
 
             var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
@@ -71,7 +80,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Render(VisualProperty property, CodeGeneratorContext context)
         {
             var render = context.CodeScope.Pop() as CodeVariableReferenceExpression;
-            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
+            var gen = (CodeMemberMethod)context.CodeScope.Peek();
             switch (property.Key)
             {
                 case "template":
@@ -100,7 +109,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         protected override Task Begin(SceneInstructions instructions, CodeGeneratorContext context)
         {
-            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
+            var gen = (CodeMemberMethod)context.CodeScope.Peek();
             gen.CleanIfEmpty();
             gen.Comments.Add(new CodeCommentStatement($"TODO: Turn the scene into a handler for {instructions.Type}"));
             return base.Begin(instructions, context);
@@ -108,32 +117,30 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         protected override Task Begin(SceneInstructionContainer instructions, CodeGeneratorContext context)
         {
-            CodeStatementCollection statements;
-            if (context.CodeScope.Peek() is CodeTypeDeclaration type)
-            {
-                statements = type.GetGenerateMethod().Statements;
-            }
-            else if (context.CodeScope.Peek() is CodeMemberMethod member)
+            CodeStatementCollection statements = null;
+            if (context.CodeScope.Peek() is CodeMemberMethod member)
             {
                 statements = member.Statements;
             }
-            else
+            else if(context.CodeScope.Peek() is CodeConditionStatement conditional)
             {
-                statements = ((CodeConditionStatement)context.CodeScope.Peek()).TrueStatements;
+                statements = conditional.TrueStatements;
             }
 
             if (instructions is If ifstmt)
             {
+                if (statements == null)
+                {
+                    throw new InvalidSkillFlowException("Check to see what happens with if statmeents after hear");
+                }
                 var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
                 statements.Add(codeIf);
                 context.CodeScope.Push(codeIf);
             }
             else if (instructions is Hear hear)
             {
-                if (!(statements.Count > 0 && statements[statements.Count - 1] is CodeMethodReturnStatement))
-                {
-                    CodeGeneration_Interaction.AddHearMarker(statements, context);
-                }
+                CodeGeneration_Interaction.AddHearMarker(context);
+
 
                 CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
             }
@@ -147,6 +154,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             if (context.CodeScope.Peek() is CodeConditionStatement || context.CodeScope.Peek() is CodeMemberMethod)
             {
                 context.CodeScope.Pop();
+            }
+
+            if (context.CodeScope.Peek() is CodeTypeDeclaration typeDeclaration)
+            {
+                context.CodeScope.Push(typeDeclaration.GetGenerateMethod());
             }
 
             return base.End(instructions, context);

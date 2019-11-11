@@ -13,11 +13,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Interaction
     {
-        public static void AddHearMarker(CodeStatementCollection statements, CodeGeneratorContext context)
+        public static void AddHearMarker(CodeGeneratorContext context)
         {
-            statements.Add(new CodeAssignStatement(
-                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "ShouldEndSession"),
-                new CodePrimitiveExpression(false)));
             //TODO: Add statement that sets marker variable as string - used for shared markers to know which call to make
 
 
@@ -64,7 +61,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
                 foreach (var it in nulls.ToArray())
                 {
-                    CreateIntentRequestHandler(context, intentName);
+                    context.CreateIntentRequestHandler(intentName);
                     dictionary[it.Key] = intent;
                 }
             }
@@ -83,77 +80,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 Console.WriteLine(shared);
             }
 
-            
-        }
 
-        public static CodeCompileUnit CreateIntentRequestHandler(CodeGeneratorContext context, string intentName)
-        {
-            if (context.RequestHandlers.ContainsKey(intentName))
-            {
-                return context.RequestHandlers[intentName];
-            }
-
-            var code = new CodeCompileUnit();
-            var ns = new CodeNamespace(context.Options.SafeRootNamespace);
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
-            ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
-            code.Namespaces.Add(ns);
-
-            var mainClass = GenerateHandlerClass(intentName,context);
-            ns.Types.Add(mainClass);
-            context.RequestHandlers.Add(intentName, code);
-            return code;
-        }
-
-        private static CodeTypeDeclaration GenerateHandlerClass(string rhName, CodeGeneratorContext context)
-        {
-            var mainClass = new CodeTypeDeclaration(rhName)
-            {
-                IsClass = true
-            };
-            mainClass.BaseTypes.Add(new CodeTypeReference(typeof(IntentNameRequestHandler<APLSkillRequest>)));
-
-            var constructor = new CodeConstructor
-            {
-                Attributes = MemberAttributes.Public
-            };
-
-            constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(rhName));
-            mainClass.Members.Add(constructor);
-
-
-            var method = new CodeMemberMethod
-            {
-                Name = "Handle",
-                Attributes = MemberAttributes.Public | MemberAttributes.Override,
-                ReturnType = new CodeTypeReference("async Task<SkillResponse>")
-            };
-            
-            method.Parameters.Add(
-                new CodeParameterDeclarationExpression(typeof(AlexaRequestInformation<APLSkillRequest>),
-                    "information"));
-
-            method.Statements.Add(
-                new CodeVariableDeclarationStatement(
-                    new CodeTypeReference("var"),
-                    "response",
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)), "Empty")
-                )
-            );
-
-            var methodCall = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod) context.CodeScope.First()).Name,
-                new CodeVariableReferenceExpression("information"),
-                new CodeVariableReferenceExpression("response"));
-            method.Statements.Add(methodCall);
-            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
-
-            
-            mainClass.Members.Add(method);
-            return mainClass;
         }
     }
 }
