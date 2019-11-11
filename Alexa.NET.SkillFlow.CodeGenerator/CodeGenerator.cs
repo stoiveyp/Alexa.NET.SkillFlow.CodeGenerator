@@ -53,7 +53,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         protected override Task Begin(Visual story, CodeGeneratorContext context)
         {
-            var gen = ((CodeTypeDeclaration) context.CodeScope.Peek()).GetGenerateMethod();
+            var gen = ((CodeTypeDeclaration)context.CodeScope.Peek()).GetGenerateMethod();
             gen.CleanIfEmpty();
 
             var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
@@ -75,13 +75,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             switch (property.Key)
             {
                 case "template":
-                    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context,property.Value);
+                    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context, property.Value);
                     gen.Statements.Add(new CodeAssignStatement(
                         new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
                         layoutCall));
                     break;
                 case "background":
-                    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen,"apl");
+                    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
                     gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
                     break;
                 case "title":
@@ -119,7 +119,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             else
             {
-                statements = ((CodeConditionStatement) context.CodeScope.Peek()).TrueStatements;
+                statements = ((CodeConditionStatement)context.CodeScope.Peek()).TrueStatements;
             }
 
             if (instructions is If ifstmt)
@@ -132,7 +132,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 if (!(statements.Count > 0 && statements[statements.Count - 1] is CodeMethodReturnStatement))
                 {
-                    CodeGeneration_Interaction.AddHearMarker(context);
+                    CodeGeneration_Interaction.AddHearMarker(statements, context);
                 }
 
                 CodeGeneration_Interaction.AddIntent(context, hear.Phrases);

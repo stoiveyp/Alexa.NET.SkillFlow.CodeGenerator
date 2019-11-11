@@ -13,9 +13,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Interaction
     {
-        public static void AddHearMarker(CodeGeneratorContext context)
+        public static void AddHearMarker(CodeStatementCollection statements, CodeGeneratorContext context)
         {
+            statements.Add(new CodeAssignStatement(
+                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "ShouldEndSession"),
+                new CodePrimitiveExpression(false)));
             //TODO: Add statement that sets marker variable as string - used for shared markers to know which call to make
+
 
             while (context.CodeScope.Peek().GetType() != typeof(CodeTypeDeclaration))
             {

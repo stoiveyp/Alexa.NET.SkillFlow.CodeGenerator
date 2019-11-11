@@ -77,19 +77,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var isSsml = content.Any(c => c == '<' || c == '>');
             var creationType = isSsml ? typeof(SsmlOutputSpeech) : typeof(PlainTextOutputSpeech);
-            var propertyName = isSsml ? "Ssml" : "Text";
 
             method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), varName)
             {
-                InitExpression = new CodeObjectCreateExpression(creationType)
+                InitExpression = new CodeObjectCreateExpression(creationType,new CodePrimitiveExpression(content))
             });
-
-            method.Statements.Add(new CodeAssignStatement(
-                    new CodePropertyReferenceExpression(
-                        new CodeVariableReferenceExpression(varName), propertyName),
-                    new CodePrimitiveExpression(content)));
-
-
             return varName;
         }
     }

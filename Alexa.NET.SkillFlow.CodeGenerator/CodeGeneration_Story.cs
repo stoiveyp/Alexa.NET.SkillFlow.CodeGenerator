@@ -18,7 +18,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     new XElement("ItemGroup",
                         new XElement("PackageReference",
                             new XAttribute("Include", "Alexa.NET"),
-                            new XAttribute("Version", "1.8.2")),
+                            new XAttribute("Version", "1.10.1")),
                         new XElement("PackageReference",
                             new XAttribute("Include", "Alexa.NET.APL"),
                             new XAttribute("Version", "4.4.0")),
