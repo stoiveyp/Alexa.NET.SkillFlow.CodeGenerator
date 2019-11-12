@@ -3,16 +3,25 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using Alexa.NET.Request;
-using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class Utility
     {
+        public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
+        {
+            switch (stack.Peek())
+            {
+                case CodeMemberMethod member:
+                    return member.Statements;
+                case CodeConditionStatement conditional:
+                    return conditional.TrueStatements;
+                default:
+                    return null;
+            }
+        }
+
         public static string Safe(this string candidate)
         {
             var osb = new StringBuilder();

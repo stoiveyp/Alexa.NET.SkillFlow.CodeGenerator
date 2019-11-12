@@ -111,21 +111,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
             gen.CleanIfEmpty();
-            gen.Comments.Add(new CodeCommentStatement($"TODO: Turn the scene into a handler for {instructions.Type}"));
+            CodeGeneration_Instructions.SetVariable(context.CodeScope.Statements(), "_marker", context.Marker);
             return base.Begin(instructions, context);
         }
 
         protected override Task Begin(SceneInstructionContainer instructions, CodeGeneratorContext context)
         {
-            CodeStatementCollection statements = null;
-            if (context.CodeScope.Peek() is CodeMemberMethod member)
-            {
-                statements = member.Statements;
-            }
-            else if(context.CodeScope.Peek() is CodeConditionStatement conditional)
-            {
-                statements = conditional.TrueStatements;
-            }
+            CodeStatementCollection statements = context.CodeScope.Statements();
 
             if (instructions is If ifstmt)
             {

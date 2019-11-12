@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Linq;
+using System.Linq.Expressions;
 using Alexa.NET.Request;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
@@ -39,6 +40,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers.Handlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
             code.Namespaces.Add(ns);
 
@@ -51,7 +53,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             return GenerateHandlerClass(context, className, mainClass =>
             {
-                mainClass.BaseTypes.Add(new CodeTypeReference(typeof(LaunchRequestHandler<APLSkillRequest>)));
+                mainClass.BaseTypes.Add(new CodeTypeReference("LaunchRequestHandler<APLSkillRequest>"));
 
                 var constructor = new CodeConstructor
                 {
@@ -66,7 +68,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             return GenerateHandlerClass(context, className.Safe(), mainClass =>
             {
-                mainClass.BaseTypes.Add(new CodeTypeReference(typeof(IntentNameRequestHandler<APLSkillRequest>)));
+                mainClass.BaseTypes.Add(new CodeTypeReference("IntentNameRequestHandler<APLSkillRequest>"));
 
                 var constructor = new CodeConstructor
                 {
@@ -95,7 +97,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             };
 
             method.Parameters.Add(
-                new CodeParameterDeclarationExpression(typeof(AlexaRequestInformation<APLSkillRequest>),
+                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     "information"));
 
             method.Statements.Add(
@@ -106,17 +108,43 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 )
             );
 
-            var methodCall = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("await " + ((CodeTypeDeclaration)context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod)context.CodeScope.First()).Name,
-                new CodeVariableReferenceExpression("information"),
-                new CodeVariableReferenceExpression("response"));
-            method.Statements.Add(methodCall);
             method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
-
-
             mainClass.Members.Add(method);
+            AddIfMarker(mainClass, context);
             return mainClass;
+        }
+
+        public static void AddIfMarker(CodeTypeDeclaration mainClass, CodeGeneratorContext context)
+        {
+            var method = mainClass.Members.OfType<CodeMemberMethod>().First(m => m.Name == "Handle");
+
+            var ifCall = new CodeConditionStatement
+            {
+                Condition = new CodeBinaryOperatorExpression(
+                    new CodeMethodInvokeExpression(
+                        new CodePropertyReferenceExpression(
+                            new CodeVariableReferenceExpression("await information"), "State"),
+                        "Get<string>",
+                        new CodePrimitiveExpression("_marker")),
+                    CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(context.Marker)),
+                TrueStatements =
+                {
+                    new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression(
+                            "await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
+                        ((CodeMemberMethod) context.CodeScope.First()).Name,
+                        new CodeVariableReferenceExpression("information"),
+                        new CodeVariableReferenceExpression("response"))
+                }
+            };
+            if (method.Statements.Count == 0)
+            {
+                method.Statements.Add(ifCall);
+            }
+            else
+            {
+                method.Statements.Insert(method.Statements.Count - 1, ifCall);
+            }
         }
     }
 }
