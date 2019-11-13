@@ -60,36 +60,48 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 }
             }
 
-            //TODO: Isolate shared handlers - like "yes"
             foreach (var item in dictionary.Keys.ToArray().Except(nulls))
             {
                 var sharedIntent = dictionary[item];
-                var sharedHandler = context.RequestHandlers[sharedIntent.Name].Namespaces[0].Types[0];
-
-                var multiple = false;
+                var sharedHandlerClass = context.RequestHandlers[sharedIntent.Name].Namespaces[0].Types[0];
+                var safeItemName = item.Safe();
                 if (sharedIntent.Samples.Length > 1)
                 {
                     //Move phrase to its own intent
-                    sharedIntent.Samples = sharedIntent.Samples.Except(new []{item}).ToArray();
+                    sharedIntent.Samples = sharedIntent.Samples.Except(new[] { item }).ToArray();
                     var intent = new IntentType
                     {
-                        Name = item.Safe(),
-                        Samples = new[] {item}
+                        Name = safeItemName,
+                        Samples = new[] { item }
                     };
+                    sharedIntent = intent;
 
                     context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
                     dictionary[item] = intent;
+                    var newHandler = context.CreateIntentRequestHandler(safeItemName);
+                    var newStatements = newHandler.Namespaces[0].Types[0].HandleStatements();
+                    foreach (var statement in sharedHandlerClass.HandleStatements().OfType<CodeConditionStatement>())
+                    {
+                        newStatements.Add(statement);
+                    }
                 }
-
-                if (multiple)
+                else
                 {
-                    //TODO: Duplicate the request handler so the shared phrase has isolated logic compared to other phrases
+                    CodeGeneration_RequestHandlers.AddIfMarker(sharedHandlerClass, context);
                 }
 
-                //TODO: regardless - update the request handler to match the single phrase, not the context marker it was used for
+                var originalName = sharedIntent.Name;
+                sharedIntent.Name = safeItemName;
+                var rh = context.RequestHandlers[originalName];
 
+                context.RequestHandlers.Remove(originalName);
+                context.RequestHandlers.Add(safeItemName, rh);
 
-                CodeGeneration_RequestHandlers.AddIfMarker(sharedHandler, context);
+                var handlerType = rh.Namespaces[0].Types[0];
+                handlerType.Name = safeItemName;
+                var constructor = handlerType.Members.OfType<CodeConstructor>().First();
+                constructor.BaseConstructorArgs.Clear();
+                constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(safeItemName));
             }
 
             //TODO: Handle fallback handlers

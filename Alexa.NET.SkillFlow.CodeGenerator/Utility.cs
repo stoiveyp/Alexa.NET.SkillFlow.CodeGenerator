@@ -9,6 +9,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class Utility
     {
+        public static CodeStatementCollection HandleStatements(this CodeTypeDeclaration type)
+        {
+            return type.Members.OfType<CodeMemberMethod>()
+                .First(m => m.Name == "Handle").Statements;
+        }
+
         public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
         {
             switch (stack.Peek())
