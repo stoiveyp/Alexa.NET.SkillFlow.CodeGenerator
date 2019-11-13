@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Request.Type;
+using Alexa.NET.Response.Directive;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -107,6 +108,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             //TODO: Handle fallback handlers
             if (fallback)
             {
+                //TODO: update fallback with helper method that sets the fallback handler for that marker position
+                //TODO: use same helper method with recap support
                 context.CreateIntentRequestHandler(BuiltInIntent.Fallback);
             }
 

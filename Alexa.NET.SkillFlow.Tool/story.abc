@@ -204,6 +204,9 @@
 		hear no {
 			>> RESTART
 		}
+		hear * {
+                -> help
+            }
 
 // SPECIAL SCENE: @pause is a special scene that plays before the skill pauses
 @pause
