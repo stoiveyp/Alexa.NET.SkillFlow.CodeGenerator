@@ -118,6 +118,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var method = mainClass.Members.OfType<CodeMemberMethod>().First(m => m.Name == "Handle");
 
+            var statement = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression(
+                    "await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
+                ((CodeMemberMethod) context.CodeScope.First()).Name,
+                new CodeVariableReferenceExpression("information"),
+                new CodeVariableReferenceExpression("response"));
+
+            //TODO: global append support - no if, just do it
+
             var ifCall = new CodeConditionStatement
             {
                 Condition = new CodeBinaryOperatorExpression(
@@ -127,16 +136,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                         "Get<string>",
                         new CodePrimitiveExpression("_marker")),
                     CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(context.Marker)),
-                TrueStatements =
-                {
-                    new CodeMethodInvokeExpression(
-                        new CodeTypeReferenceExpression(
-                            "await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
-                        ((CodeMemberMethod) context.CodeScope.First()).Name,
-                        new CodeVariableReferenceExpression("information"),
-                        new CodeVariableReferenceExpression("response"))
-                }
+                TrueStatements = { statement }
             };
+
             if (method.Statements.Count == 0)
             {
                 method.Statements.Add(ifCall);

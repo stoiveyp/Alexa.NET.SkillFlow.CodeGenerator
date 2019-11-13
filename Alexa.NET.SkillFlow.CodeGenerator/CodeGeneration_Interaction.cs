@@ -33,6 +33,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases)
         {
+            //TODO: if the hear is inside an if - it needs a context marker AND if marker to be true to see if it's valid
+            //TODO: it needs wiring up regardless - but the requesthandler has to be more specific. If context marker - then if "if" marker - then valid
+            //TODO: otherwise fallback to "fallback", either recap or * etc.
+
             var fallback = hearPhrases.Any(p => p == "*");
             if (fallback)
             {

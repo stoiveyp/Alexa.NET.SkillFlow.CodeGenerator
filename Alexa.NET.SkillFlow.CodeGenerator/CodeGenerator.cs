@@ -128,6 +128,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
                 statements.Add(codeIf);
                 context.CodeScope.Push(codeIf);
+                //TODO: Add "if" marker to ensure that hear statements in the if know if they're active or not
             }
             else if (instructions is Hear hear)
             {
