@@ -20,7 +20,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(Scene scene, CodeGeneratorContext context)
         {
             var code = CodeGeneration_Scene.Generate(scene, context);
-            var sceneClass = code.Namespaces[0].Types[0];
+            var sceneClass = code.FirstType();
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
             context.CodeScope.Push(sceneClass.GetGenerateMethod());
@@ -111,7 +111,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
             gen.CleanIfEmpty();
-            CodeGeneration_Instructions.SetVariable(context.CodeScope.Statements(), "_marker", context.Marker);
+            context.SetMarker(context.CodeScope.Statements());
             return base.Begin(instructions, context);
         }
 
@@ -128,7 +128,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
                 statements.Add(codeIf);
                 context.CodeScope.Push(codeIf);
-                //TODO: Add "if" marker to ensure that hear statements in the if know if they're active or not
+                context.SetMarker(statements);
             }
             else if (instructions is Hear hear)
             {

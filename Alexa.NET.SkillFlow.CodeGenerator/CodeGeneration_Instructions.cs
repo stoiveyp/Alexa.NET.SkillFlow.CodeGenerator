@@ -7,6 +7,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Instructions
     {
+        public static void SetMarker(this CodeGeneratorContext context, CodeStatementCollection statements)
+        {
+            SetVariable(statements, "_marker", context.Marker);
+        }
+
         public static void SetVariable(CodeStatementCollection statements, string variableName, object value)
         {
             var setVariable = new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(

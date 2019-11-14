@@ -9,6 +9,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class Utility
     {
+        public static CodeTypeDeclaration FirstType(this CodeCompileUnit unit)
+        {
+            return unit.Namespaces[0].Types[0];
+        }
+
         public static CodeStatementCollection HandleStatements(this CodeTypeDeclaration type)
         {
             return type.Members.OfType<CodeMemberMethod>()

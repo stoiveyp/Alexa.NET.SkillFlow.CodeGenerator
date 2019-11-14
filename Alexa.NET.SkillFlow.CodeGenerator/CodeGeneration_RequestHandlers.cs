@@ -10,7 +10,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_RequestHandlers
     {
-        public static CodeCompileUnit CreateLaunchRequestHandler(this CodeGeneratorContext context)
+        public static CodeCompileUnit CreateLaunchRequestHandler(this CodeGeneratorContext context, bool addIfMarker = true)
         {
             string launchRequestName = "Launch";
             if (context.RequestHandlers.ContainsKey(launchRequestName))
@@ -18,18 +18,18 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 return context.RequestHandlers[launchRequestName];
             }
 
-            var mainClass = GenerateLaunchHandler(launchRequestName, context);
+            var mainClass = GenerateLaunchHandler(launchRequestName, context, addIfMarker);
             return CreateRequestHandlerUnit(context, launchRequestName, mainClass);
         }
 
-        public static CodeCompileUnit CreateIntentRequestHandler(this CodeGeneratorContext context, string intentName)
+        public static CodeCompileUnit CreateIntentRequestHandler(this CodeGeneratorContext context, string intentName, bool addIfMarker = true)
         {
             if (context.RequestHandlers.ContainsKey(intentName))
             {
                 return context.RequestHandlers[intentName];
             }
 
-            var mainClass = GenerateIntentHandler(intentName, context);
+            var mainClass = GenerateIntentHandler(intentName, context, addIfMarker);
             return CreateRequestHandlerUnit(context, intentName, mainClass);
         }
 
@@ -49,7 +49,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return code;
         }
 
-        private static CodeTypeDeclaration GenerateLaunchHandler(string className, CodeGeneratorContext context)
+        private static CodeTypeDeclaration GenerateLaunchHandler(string className, CodeGeneratorContext context, bool addIfMarker)
         {
             return GenerateHandlerClass(context, className, mainClass =>
             {
@@ -61,10 +61,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 };
 
                 mainClass.Members.Add(constructor);
-            });
+            }, addIfMarker);
         }
 
-        private static CodeTypeDeclaration GenerateIntentHandler(string className, CodeGeneratorContext context)
+        private static CodeTypeDeclaration GenerateIntentHandler(string className, CodeGeneratorContext context, bool addIfMarker)
         {
             return GenerateHandlerClass(context, className.Safe(), mainClass =>
             {
@@ -77,10 +77,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
                 constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(className));
                 mainClass.Members.Add(constructor);
-            });
+            }, addIfMarker);
         }
 
-        private static CodeTypeDeclaration GenerateHandlerClass(CodeGeneratorContext context, string className, Action<CodeTypeDeclaration> adaptToHandler)
+        private static CodeTypeDeclaration GenerateHandlerClass(CodeGeneratorContext context, string className, Action<CodeTypeDeclaration> adaptToHandler, bool addIfMarker)
         {
             var mainClass = new CodeTypeDeclaration(className)
             {
@@ -110,18 +110,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
             mainClass.Members.Add(method);
-            AddIfMarker(mainClass, context);
+            if (addIfMarker)
+            {
+                AddIfMarker(mainClass, context);
+            }
+
             return mainClass;
         }
 
         public static void AddIfMarker(CodeTypeDeclaration mainClass, CodeGeneratorContext context)
         {
-            var method = mainClass.Members.OfType<CodeMemberMethod>().First(m => m.Name == "Handle");
+            var statements = mainClass.HandleStatements();
 
             var statement = new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression(
-                    "await " + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod) context.CodeScope.First()).Name,
+                    "await " + ((CodeTypeDeclaration)context.CodeScope.Skip(1).First()).Name),
+                ((CodeMemberMethod)context.CodeScope.First()).Name,
                 new CodeVariableReferenceExpression("information"),
                 new CodeVariableReferenceExpression("response"));
 
@@ -139,13 +143,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 TrueStatements = { statement }
             };
 
-            if (method.Statements.Count == 0)
+            if (statements.Count == 0)
             {
-                method.Statements.Add(ifCall);
+                statements.Add(ifCall);
             }
             else
             {
-                method.Statements.Insert(method.Statements.Count - 1, ifCall);
+                statements.Insert(statements.Count - 1, ifCall);
             }
         }
     }
