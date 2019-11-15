@@ -11,8 +11,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static CodeTypeDeclaration Ensure(CodeGeneratorContext context)
         {
-            var type = context.CreateIntentRequestHandler(BuiltInIntent.Fallback,false).FirstType();
-            
+            var type = context.CreateIntentRequestHandler(BuiltInIntent.Fallback, false).FirstType();
+
             var handle = type.HandleStatements();
             var returnStmt = handle.OfType<CodeMethodReturnStatement>().First();
             if (!(returnStmt.Expression is CodeMethodInvokeExpression))
@@ -40,7 +40,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 method.Parameters.Add(
                     new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                         "information"));
-                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"),"response"));
+                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"), "response"));
                 type.Members.Add(method);
                 statements = method.Statements;
 
@@ -54,11 +54,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void AddToFallback(CodeGeneratorContext context, IEnumerable<CodeStatement> statements)
         {
-            var compileUnit = Ensure(context).HandleStatements();
+            var currentMarkerCase = $"case \"{context.GenerateMarker(1)}\":";
+            var methodStmt = Ensure(context).MethodStatements("Fallback");
 
-            //TODO: Existing comment with marker in it - we're replacing at this point
+            var comment = methodStmt.OfType<CodeSnippetStatement>().FirstOrDefault(ccs => ccs.Value == currentMarkerCase);
+            if (comment == null)
+            {
+                comment = new CodeSnippetStatement(currentMarkerCase);
+                methodStmt.Insert(1, comment);
+            }
 
-            compileUnit.Add(new CodeCommentStatement(context.Marker));
+
             var ifMarker = new CodeConditionStatement();
             foreach (var statement in statements)
             {

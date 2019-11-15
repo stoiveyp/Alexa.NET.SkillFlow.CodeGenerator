@@ -34,7 +34,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void GenerateRecap(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
-            generate.Statements.Add(new CodeCommentStatement("TODO: Wire up recap"));
+            CodeGeneration_Fallback.AddToFallback(context,new CodeStatement[]{});
         }
     }
 }

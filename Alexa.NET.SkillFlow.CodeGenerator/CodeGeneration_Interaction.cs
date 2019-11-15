@@ -70,8 +70,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             if (fallback)
             {
                 //TODO: update fallback with helper method that sets the fallback handler for that marker position
-                //TODO: use same helper method with recap support
-                CodeGeneration_Fallback.Ensure(context);
+                CodeGeneration_Fallback.AddToFallback(context,new CodeStatement[]{});
             }
 
         }
