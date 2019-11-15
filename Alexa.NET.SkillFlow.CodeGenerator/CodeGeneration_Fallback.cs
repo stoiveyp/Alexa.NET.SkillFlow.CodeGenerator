@@ -12,15 +12,42 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static CodeTypeDeclaration Ensure(CodeGeneratorContext context)
         {
             var type = context.CreateIntentRequestHandler(BuiltInIntent.Fallback,false).FirstType();
-
-            var statements = type.HandleStatements();
-            if (statements.OfType<CodeSnippetStatement>().Any())
+            
+            var handle = type.HandleStatements();
+            var returnStmt = handle.OfType<CodeMethodReturnStatement>().First();
+            if (!(returnStmt.Expression is CodeMethodInvokeExpression))
             {
-                return type;
+                handle.Remove(returnStmt);
+                handle.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("await " + BuiltInIntent.Fallback.Safe()),
+                    "Fallback",
+                    new CodeVariableReferenceExpression("information"),
+                    new CodeVariableReferenceExpression("response")
+                )));
             }
 
-            statements.Add(new CodeSnippetStatement("switch(information.State.Get<string>(\"_marker\")){"));
-            statements.Add(new CodeSnippetStatement("}"));
+            var statements = type.MethodStatements("Fallback");
+
+            if (statements == null)
+            {
+                var method = new CodeMemberMethod
+                {
+                    Name = "Fallback",
+                    Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                    ReturnType = new CodeTypeReference("async Task<SkillResponse>")
+                };
+
+                method.Parameters.Add(
+                    new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                        "information"));
+                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"),"response"));
+                type.Members.Add(method);
+                statements = method.Statements;
+
+                statements.Add(new CodeSnippetStatement("switch(information.State.Get<string>(\"_marker\")){"));
+                statements.Add(new CodeSnippetStatement("}"));
+                statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
+            }
 
             return type;
         }

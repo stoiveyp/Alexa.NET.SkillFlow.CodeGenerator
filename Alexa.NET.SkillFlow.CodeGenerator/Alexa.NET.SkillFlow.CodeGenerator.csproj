@@ -1,15 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Alexa.NET.APL" Version="4.5.1" />
-    <PackageReference Include="Alexa.NET.Management" Version="3.8.1" />
+    <PackageReference Include="Alexa.NET.APL" Version="4.6.0" />
+    <PackageReference Include="Alexa.NET.Management" Version="3.9.0" />
     <PackageReference Include="Alexa.NET.RequestHandlers" Version="4.1.1" />
     <PackageReference Include="Alexa.NET.SkillFlow.Generator" Version="1.0.1" />
-    <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="2.0.1" />
     <PackageReference Include="System.CodeDom" Version="4.6.0" />
   </ItemGroup>
 

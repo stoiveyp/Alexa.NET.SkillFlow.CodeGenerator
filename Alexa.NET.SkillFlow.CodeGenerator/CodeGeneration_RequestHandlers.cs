@@ -3,6 +3,7 @@ using System.CodeDom;
 using System.Linq;
 using System.Linq.Expressions;
 using Alexa.NET.Request;
+using Alexa.NET.Request.Type;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.RequestHandlers.Handlers;
 
@@ -140,7 +141,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                         "Get<string>",
                         new CodePrimitiveExpression("_marker")),
                     CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(context.Marker)),
-                TrueStatements = { statement }
+                TrueStatements = { statement },
+                FalseStatements = { new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("await " + BuiltInIntent.Fallback.Safe()),
+                    "Fallback",
+                    new CodeVariableReferenceExpression("information"),
+                    new CodeVariableReferenceExpression("response"))
+                }
             };
 
             if (statements.Count == 0)

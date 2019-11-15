@@ -16,8 +16,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static CodeStatementCollection HandleStatements(this CodeTypeDeclaration type)
         {
-            return type.Members.OfType<CodeMemberMethod>()
-                .First(m => m.Name == "Handle").Statements;
+            return MethodStatements(type, "Handle");
+        }
+
+        public static CodeStatementCollection MethodStatements(this CodeTypeDeclaration type, string methodName, bool generate = false)
+        {
+            var candidate = type.Members.OfType<CodeMemberMethod>()
+                .FirstOrDefault(m => m.Name == methodName);
+
+            return candidate?.Statements;
         }
 
         public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
