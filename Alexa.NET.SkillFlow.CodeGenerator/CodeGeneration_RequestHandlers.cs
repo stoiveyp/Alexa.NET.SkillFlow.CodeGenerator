@@ -140,7 +140,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                             new CodeVariableReferenceExpression("await information"), "State"),
                         "Get<string>",
                         new CodePrimitiveExpression("_marker")),
-                    CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(context.Marker)),
+                    CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(context.GenerateMarker(1))),
                 TrueStatements = { statement },
                 FalseStatements = { new CodeMethodInvokeExpression(
                     new CodeTypeReferenceExpression("await " + BuiltInIntent.Fallback.Safe()),

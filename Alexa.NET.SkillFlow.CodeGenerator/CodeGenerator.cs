@@ -111,7 +111,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
             gen.CleanIfEmpty();
-            context.SetMarker(context.CodeScope.Statements());
+            context.SetMarker(context.CodeScope.Statements(),1);
             return base.Begin(instructions, context);
         }
 
