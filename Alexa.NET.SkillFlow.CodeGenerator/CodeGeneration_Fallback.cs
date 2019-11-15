@@ -25,11 +25,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return type;
         }
 
-        public static void AddToFallback(CodeGeneratorContext context)
+        public static void AddToFallback(CodeGeneratorContext context, IEnumerable<CodeStatement> statements)
         {
             var compileUnit = Ensure(context).HandleStatements();
-            
 
+            //TODO: Existing comment with marker in it - we're replacing at this point
+
+            compileUnit.Add(new CodeCommentStatement(context.Marker));
+            var ifMarker = new CodeConditionStatement();
+            foreach (var statement in statements)
+            {
+                ifMarker.TrueStatements.Add(statement);
+            }
+            //TODO: Clean up all the comments
         }
     }
 }
