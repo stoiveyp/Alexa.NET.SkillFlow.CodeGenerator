@@ -123,12 +123,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var statements = mainClass.HandleStatements();
 
-            var statement = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression(
-                    "await " + ((CodeTypeDeclaration)context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod)context.CodeScope.First()).Name,
-                new CodeVariableReferenceExpression("information"),
-                new CodeVariableReferenceExpression("response"));
+            var statement = context.RunMarker();
 
             //TODO: global append support - no if, just do it
 

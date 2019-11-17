@@ -27,6 +27,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return candidate?.Statements;
         }
 
+        public static CodeMethodInvokeExpression RunMarker(this CodeGeneratorContext context, bool wait = true)
+        {
+            return new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression(
+                    (wait ? "await " : string.Empty) + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
+                ((CodeMemberMethod) context.CodeScope.First()).Name,
+                new CodeVariableReferenceExpression("information"),
+                new CodeVariableReferenceExpression("response"));
+        }
+
         public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
         {
             switch (stack.Peek())
@@ -67,11 +77,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return (array ?? new T[] { }).Concat(toAdd).ToArray();
         }
 
-        public static void AddResponseParams(this CodeMemberMethod method)
+        public static void AddResponseParams(this CodeMemberMethod method, bool includeResponseVariable = false)
         {
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "responseBody"));
+            if (includeResponseVariable)
+            {
+                var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "response", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Response"));
+                method.Statements.Add(assignment);
+            }
         }
 
         public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)

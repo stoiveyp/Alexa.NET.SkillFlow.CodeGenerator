@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>botsay</ToolCommandName>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationIcon />
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Alexa.NET.SkillFlow.Interpreter" Version="1.0.1" />
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
   </ItemGroup>
 

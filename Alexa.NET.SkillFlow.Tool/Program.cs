@@ -1,9 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Alexa.NET.SkillFlow.CodeGenerator;
-using Microsoft.Build.Locator;
+using CommandLine;
 
 namespace Alexa.NET.SkillFlow.Tool
 {
@@ -11,23 +9,38 @@ namespace Alexa.NET.SkillFlow.Tool
     {
         static async Task Main(string[] args)
         {
-            MSBuildLocator.RegisterDefaults();
+            Task task = null;
+            Parser.Default.ParseArguments<CommandLineArguments>(args).WithParsed(cla =>
+                {
+                    task = ProcessArguments(cla);
+                }).WithNotParsed(e => { task = Task.FromResult((object) null); });
+            if (task != null)
+            {
+                await task;
+            }
+        }
 
-            var directory = new DirectoryInfo("./output");
+        private static async Task ProcessArguments(CommandLineArguments args)
+        {
+            if (string.IsNullOrWhiteSpace(args.Output))
+            {
+                args.Output = Path.Combine(".", "output");
+            }
+            var directory = new DirectoryInfo(args.Output);
             if (!directory.Exists)
             {
                 directory.Create();
             }
 
             Story story;
-            var file = new FileInfo("story.abc");
+            var file = new FileInfo(args.Input);
             using (var reader = file.OpenRead())
             {
                 story = await new SkillFlowInterpreter().Interpret(reader);
             }
 
 
-            var context = new CodeGeneratorContext();
+            var context = new CodeGeneratorContext(args.ToCodeGenerator());
             var generator = new CodeGenerator.CodeGenerator();
             await generator.Generate(story, context);
 

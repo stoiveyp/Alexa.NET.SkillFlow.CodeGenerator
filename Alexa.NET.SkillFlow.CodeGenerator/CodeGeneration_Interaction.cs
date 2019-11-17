@@ -70,7 +70,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             if (fallback)
             {
                 //TODO: update fallback with helper method that sets the fallback handler for that marker position
-                CodeGeneration_Fallback.AddToFallback(context,new CodeStatement[]{});
+                CodeGeneration_Fallback.AddToFallback(context,context.RunMarker(false));
             }
 
         }

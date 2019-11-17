@@ -41,10 +41,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("async Task")
             };
 
-            method.AddResponseParams();
+            method.AddResponseParams(true);
 
-            var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "response", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Response"));
-            method.Statements.Add(assignment);
 
             var throwStatement = new CodeThrowExceptionStatement(new CodeObjectCreateExpression(typeof(NotImplementedException)));
             method.Statements.Add(throwStatement);

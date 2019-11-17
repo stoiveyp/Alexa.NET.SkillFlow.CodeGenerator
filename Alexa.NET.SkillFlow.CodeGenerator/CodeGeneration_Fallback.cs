@@ -44,7 +44,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 type.Members.Add(method);
                 statements = method.Statements;
 
-                statements.Add(new CodeSnippetStatement("switch(information.State.Get<string>(\"_marker\")){"));
+                statements.Add(new CodeSnippetStatement("switch(await information.State.Get<string>(\"_marker\")){"));
                 statements.Add(new CodeSnippetStatement("}"));
                 statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
             }
@@ -52,25 +52,31 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return type;
         }
 
-        public static void AddToFallback(CodeGeneratorContext context, IEnumerable<CodeStatement> statements)
+        public static void AddToFallback(CodeGeneratorContext context, CodeMethodInvokeExpression methodInvoke)
         {
-            var currentMarkerCase = $"case \"{context.GenerateMarker(1)}\":";
+            var label = context.GenerateMarker(1);
+            var currentMarkerCase = $"case \"{label}\":";
             var methodStmt = Ensure(context).MethodStatements("Fallback");
 
-            var comment = methodStmt.OfType<CodeSnippetStatement>().FirstOrDefault(ccs => ccs.Value == currentMarkerCase);
-            if (comment == null)
+            var caseStmt = methodStmt.OfType<CodeSnippetStatement>().FirstOrDefault(ccs => ccs.Value == currentMarkerCase);
+            if (caseStmt == null)
             {
-                comment = new CodeSnippetStatement(currentMarkerCase);
-                methodStmt.Insert(1, comment);
+                caseStmt = new CodeSnippetStatement(currentMarkerCase);
+                methodStmt.Insert(1, caseStmt);
+                methodStmt.Insert(2, new CodeSnippetStatement("break;"));
             }
 
-
-            var ifMarker = new CodeConditionStatement();
-            foreach (var statement in statements)
+            var stmtPos = methodStmt.IndexOf(caseStmt);
+            while (!(methodStmt[stmtPos + 1] is CodeSnippetStatement snippet) || snippet.Value != "break;")
             {
-                ifMarker.TrueStatements.Add(statement);
+                methodStmt.RemoveAt(stmtPos + 1);
             }
-            //TODO: Clean up all the comments
+
+            var varName = "var_" + label.ToLower();
+            methodStmt.Insert(stmtPos + 1, new CodeVariableDeclarationStatement(
+                new CodeTypeReference("var"),
+                varName, methodInvoke));
+            methodStmt.Insert(stmtPos + 2, new CodeSnippetStatement($"await {varName};"));
         }
     }
 }

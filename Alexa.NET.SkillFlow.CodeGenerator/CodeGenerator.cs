@@ -54,7 +54,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     CodeGeneration_Text.GenerateReprompt(generate, text, context);
                     break;
                 case "recap":
-                    CodeGeneration_Text.GenerateRecap(generate, text, context);
+                    CodeGeneration_Text.GenerateRecap(context.CodeScope.Reverse().First(o => o is CodeTypeDeclaration) as CodeTypeDeclaration, text, context);
                     break;
             }
             return base.Begin(text, context);
