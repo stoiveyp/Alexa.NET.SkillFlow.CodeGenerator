@@ -17,16 +17,36 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void SetVariable(this CodeStatementCollection statements, string variableName, object value)
         {
             var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
-                new CodePrimitiveExpression(variableName),
+                new CodePrimitiveExpression("game_" + variableName),
                 new CodePrimitiveExpression(value));
 
             statements.Add(setVariable);
         }
 
+        public static void Decrease(this CodeStatementCollection statements, string variableName, int amount)
+        {
+
+        }
+
+        public static void Increase(this CodeStatementCollection statements, string variableName, int amount)
+        {
+
+        }
+
+        public static void Clear(this CodeStatementCollection statements, string name)
+        {
+
+        }
+
+        public static void ClearAll(this CodeStatementCollection statements)
+        {
+
+        }
+
         public static CodeMethodInvokeExpression GetVariable(string variableName, Type type)
         {
             var getStmt = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue",
-                new CodePrimitiveExpression(variableName));
+                new CodePrimitiveExpression("game_" + variableName));
             getStmt.Method.TypeArguments.Add(type);
             return getStmt;
         }

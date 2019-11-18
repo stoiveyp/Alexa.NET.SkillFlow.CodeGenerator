@@ -181,10 +181,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             switch (instruction)
             {
                 case Clear clear:
+                    statements.Clear(clear.Variable);
                     break;
                 case ClearAll clearAll:
+                    statements.ClearAll();
                     break;
                 case Decrease decrease:
+                    statements.Decrease(decrease.Variable, decrease.Amount);
                     break;
                 case Flag flag:
                     statements.SetVariable(flag.Variable, true);
@@ -197,16 +200,20 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.GenerateGoTo(goToAndReturn.SceneName);
                     break;
                 case Increase increase:
+                    statements.Increase(increase.Variable, increase.Amount);
                     break;
                 case Set set:
                     statements.SetVariable(set.Variable, set.Value);
                     break;
                 case SlotAssignment slotAssignment:
+                    //TODO: Other missing statements before this
+                    context.SetSlotType(slotAssignment.SlotName,slotAssignment.SlotType);
                     break;
                 case Unflag unflag:
                     statements.SetVariable(unflag.Variable,false);
                     break;
                 case Back back:
+                    //TODO: implement scene stack? Dictionary access to generates?
                     break;
                 case End end:
                     break;
@@ -220,7 +227,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     break;
                 case Resume resume:
                     break;
-                case Return @return:
+                case Return returnCmd:
                     break;
             }
             return base.Render(instruction, context);
