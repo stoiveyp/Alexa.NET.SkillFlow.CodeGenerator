@@ -31,7 +31,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var mainClass = new CodeTypeDeclaration(SceneClassName(scene.Name))
             {
-                IsClass = true
+                IsClass = true,
+                Attributes = MemberAttributes.Public
             };
 
             var method = new CodeMemberMethod

@@ -58,10 +58,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public async Task Output(string directoryFullName)
         {
             var json = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
-            await OutputRootFiles(json, directoryFullName);
 
             using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
             {
+                await OutputRootFiles(csharp, json, directoryFullName);
+
                 var sceneFileDirectory = Path.Combine(directoryFullName, "Scenes");
                 Directory.CreateDirectory(sceneFileDirectory);
                 await OutputSceneFiles(csharp, sceneFileDirectory);
@@ -108,7 +109,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }));
         }
 
-        private async Task OutputRootFiles(JsonSerializer json, string directoryFullName)
+        private async Task OutputRootFiles(CodeDomProvider csharp,JsonSerializer json, string directoryFullName)
         {
             foreach (var supplemental in OtherFiles)
             {
@@ -119,6 +120,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     {
                         suppStream.Seek(0, SeekOrigin.Begin);
                         await suppStream.CopyToAsync(writer);
+                    }
+                }
+                else if (supplemental.Value is CodeCompileUnit unit)
+                {
+                    using (var sw = new StreamWriter(writer))
+                    {
+                        csharp.GenerateCodeFromCompileUnit(
+                            unit,
+                            sw,
+                            new System.CodeDom.Compiler.CodeGeneratorOptions());
+                        await sw.FlushAsync();
                     }
                 }
                 else

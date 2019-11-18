@@ -6,6 +6,8 @@ using Alexa.NET.Response;
 using Alexa.NET.Response.APL;
 using Alexa.NET.SkillFlow.Generator;
 using Alexa.NET.SkillFlow.Instructions;
+using Alexa.NET.SkillFlow.Terminators;
+using Reprompt = Alexa.NET.SkillFlow.Terminators.Reprompt;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -175,16 +177,50 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     return Noop(context);
             }
 
-
+            CodeGeneration_Instructions.EnsureStateMaintenance(context);
             switch (instruction)
             {
+                case Clear clear:
+                    break;
+                case ClearAll clearAll:
+                    break;
+                case Decrease decrease:
+                    break;
+                case Flag flag:
+                    statements.SetVariable(flag.Variable, true);
+                    break;
                 case GoTo gto:
-                    statements.Add(new CodeMethodInvokeExpression(
-                        new CodeTypeReferenceExpression("await " + CodeGeneration_Scene.SceneClassName(gto.SceneName)),
-                        "Generate",
-                        new CodeVariableReferenceExpression("request"),
-                        new CodeVariableReferenceExpression("responseBody")));
+                    statements.GenerateGoTo(gto.SceneName);
                     statements.Add(new CodeMethodReturnStatement());
+                    break;
+                case GoToAndReturn goToAndReturn:
+                    statements.GenerateGoTo(goToAndReturn.SceneName);
+                    break;
+                case Increase increase:
+                    break;
+                case Set set:
+                    statements.SetVariable(set.Variable, set.Value);
+                    break;
+                case SlotAssignment slotAssignment:
+                    break;
+                case Unflag unflag:
+                    statements.SetVariable(unflag.Variable,false);
+                    break;
+                case Back back:
+                    break;
+                case End end:
+                    break;
+                case Pause pause:
+                    break;
+                case Repeat repeat:
+                    break;
+                case Reprompt reprompt:
+                    break;
+                case Restart restart:
+                    break;
+                case Resume resume:
+                    break;
+                case Return @return:
                     break;
             }
             return base.Render(instruction, context);

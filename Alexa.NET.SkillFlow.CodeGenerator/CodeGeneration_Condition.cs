@@ -14,9 +14,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 case Variable variable:
                     var typeArg = ComparisonType(comparisonType);
-                    var method = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("await request.State"),"Get",new CodePrimitiveExpression(variable.Name));
-                    method.Method.TypeArguments.Add(typeArg);
-                    return method;
+                    return CodeGeneration_Instructions.GetVariable(variable.Name, typeArg);
                 case LiteralValue literal:
                     return new CodePrimitiveExpression(literal.Value);
                 case ValueWrapper wrapper:

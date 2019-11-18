@@ -45,7 +45,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.AddResponseParams(true);
             type.Members.Add(method);
             GenerateSay(method, text, context);
-            //method.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeType)));
 
             CodeGeneration_Fallback.AddToFallback(context,
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(type.Name), "Recap",
