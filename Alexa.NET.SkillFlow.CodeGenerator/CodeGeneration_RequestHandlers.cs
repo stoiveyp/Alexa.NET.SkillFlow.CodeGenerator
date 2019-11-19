@@ -125,8 +125,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var statement = context.RunMarker();
 
-            //TODO: global append support - no if, just do it
-
             var ifCall = new CodeConditionStatement
             {
                 Condition = new CodeBinaryOperatorExpression(

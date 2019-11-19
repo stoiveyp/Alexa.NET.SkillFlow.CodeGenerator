@@ -212,7 +212,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(unflag.Variable,false);
                     break;
                 case Back back:
-                    //TODO: implement scene stack? Dictionary access to generates?
+                    //implement scene stack? Dictionary access to generates?
                     break;
                 case End end:
                     break;

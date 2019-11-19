@@ -66,10 +66,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 UpdateSharedIntent(context,dictionary,item);
             }
 
-            //TODO: Handle fallback handlers
             if (fallback)
             {
-                //TODO: update fallback with helper method that sets the fallback handler for that marker position
                 CodeGeneration_Fallback.AddToFallback(context,context.RunMarker(false));
             }
 
