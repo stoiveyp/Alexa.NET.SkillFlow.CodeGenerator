@@ -206,7 +206,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(set.Variable, set.Value);
                     break;
                 case SlotAssignment slotAssignment:
-                    //TODO: Other missing statements before this
                     context.SetSlotType(slotAssignment.SlotName,slotAssignment.SlotType);
                     break;
                 case Unflag unflag:

@@ -161,5 +161,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
 
         }
+
+        public Dictionary<string,string> Slots { get; } = new Dictionary<string, string>();
+
+        public void SetSlotType(string name, string type)
+        {
+            if (Slots.ContainsKey(name))
+            {
+                Slots[name] = type;
+            }
+            else
+            {
+                Slots.Add(name,type);
+            }
+        }
     }
 }
