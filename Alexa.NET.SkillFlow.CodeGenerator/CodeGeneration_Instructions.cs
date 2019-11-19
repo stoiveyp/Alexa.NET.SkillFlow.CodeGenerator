@@ -1,9 +1,5 @@
 ﻿using System;
 using System.CodeDom;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
-using Alexa.NET.SkillFlow.Instructions;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -12,7 +8,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void SetMarker(this CodeGeneratorContext context, CodeStatementCollection statements, int skip = 0)
         {
             EnsureStateMaintenance(context);
-            SetVariable(statements, "_marker", context.GenerateMarker(skip),false);
+            SetVariable(statements, "_marker", context.GenerateMarker(skip), false);
         }
 
         public static void SetVariable(this CodeStatementCollection statements, string variableName, object value, bool gameVariable = true)
@@ -26,12 +22,20 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void Decrease(this CodeStatementCollection statements, string variableName, int amount)
         {
+            var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "Decrease",
+                new CodePrimitiveExpression(variableName),
+                new CodePrimitiveExpression(amount));
 
+            statements.Add(setVariable);
         }
 
         public static void Increase(this CodeStatementCollection statements, string variableName, int amount)
         {
+            var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "Increase",
+                new CodePrimitiveExpression(variableName),
+                new CodePrimitiveExpression(amount));
 
+            statements.Add(setVariable);
         }
 
         public static void Clear(this CodeStatementCollection statements, string name)
@@ -93,6 +97,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             type.Members.Add(CreateSetMethod());
             type.Members.Add(CreateGetMethod());
+            type.Members.Add(CreateIncreaseMethod());
+            type.Members.Add(CreateDecreaseMethod());
             type.Members.Add(CreateClearMethod());
             type.Members.Add(CreateClearAllMethod());
             return type;
@@ -117,6 +123,56 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             getVariableMethod.Statements.Add(new CodeMethodReturnStatement(getVariable));
             return getVariableMethod;
+        }
+
+        private static CodeTypeMember CreateIncreaseMethod()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Increase",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression("this AlexaRequestInformation<APLSkillRequest>", "request"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "name"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
+
+            method.Statements.Add(
+                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                    new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
+                    , new CodeVariableReferenceExpression("name"))));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
+                "SetValue",
+                new CodeVariableReferenceExpression("name"),
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("target"),
+                    CodeBinaryOperatorType.Add, new CodeVariableReferenceExpression("amount"))));
+
+            return method;
+        }
+
+        private static CodeTypeMember CreateDecreaseMethod()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Decrease",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression("this AlexaRequestInformation<APLSkillRequest>", "request"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "name"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
+
+            method.Statements.Add(
+                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                    new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
+                        , new CodeVariableReferenceExpression("name"))));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
+                "SetValue",
+                new CodeVariableReferenceExpression("name"),
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("target"),
+                    CodeBinaryOperatorType.Subtract, new CodeVariableReferenceExpression("amount"))));
+
+            return method;
         }
 
         private static CodeTypeMember CreateClearMethod()
