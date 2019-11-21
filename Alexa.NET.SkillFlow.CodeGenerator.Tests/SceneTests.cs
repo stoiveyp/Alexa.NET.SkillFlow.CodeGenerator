@@ -43,16 +43,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             Assert.Equal("Generate",method.Name);
         }
 
-        [Fact]
-        public async Task GenerateMethodContainsNotImplementedException()
-        {
-            var context = await GenerateTestStory();
-            var classType = context.GetClass("Scene_Test");
-            var throwstatement = classType.GenerateMethod().Statements.OfType<CodeThrowExceptionStatement>().First();
-            var exceptionCreation = Assert.IsType<CodeObjectCreateExpression>(throwstatement.ToThrow);
-            Assert.Equal(typeof(NotImplementedException).ToString(),exceptionCreation.CreateType.BaseType);
-        }
-
         private CodeGenerator _generator;
         
         private async Task<CodeGeneratorContext> GenerateTestStory()

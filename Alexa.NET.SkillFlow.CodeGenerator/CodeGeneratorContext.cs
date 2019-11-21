@@ -1,4 +1,5 @@
-﻿using System.CodeDom;
+﻿using System;
+using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +77,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private async Task OutputRequestHandlers(CodeDomProvider csharp, string directoryFullName)
         {
+            throw new InvalidOperationException("You need to wire up prepend and append into scene navigation");
             await Task.WhenAll(RequestHandlers.Select(async c =>
                 {
                     using (var textWriter =
@@ -93,7 +95,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private async Task OutputSceneFiles(CodeDomProvider csharp, string directoryFullName)
         {
-
             await Task.WhenAll(SceneFiles.Select(async c =>
             {
                 using (var textWriter =

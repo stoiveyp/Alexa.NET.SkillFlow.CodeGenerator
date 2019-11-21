@@ -18,7 +18,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             CodeGeneration_Story.CreateProjectFile(context);
             return base.Begin(story, context);
         }
-
         protected override Task Begin(Scene scene, CodeGeneratorContext context)
         {
             var code = CodeGeneration_Scene.Generate(scene, context);
@@ -26,7 +25,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
             context.CodeScope.Push(sceneClass.GetGenerateMethod());
-            CodeGeneration_Navigation.RegisterScene(context,scene.Name,new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name),"Generate"));
+
+            CodeGeneration_Navigation.RegisterScene(context, scene.Name,
+                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), "Generate"));
 
             if (scene.Name.Equals("start", StringComparison.OrdinalIgnoreCase))
             {
@@ -46,7 +47,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(Text text, CodeGeneratorContext context)
         {
             var generate = (CodeMemberMethod)context.CodeScope.Peek();
-            generate.CleanIfEmpty();
 
             switch (text.TextType.ToLower())
             {
@@ -66,7 +66,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(Visual story, CodeGeneratorContext context)
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
-            gen.CleanIfEmpty();
 
             var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
 
@@ -113,8 +112,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(SceneInstructions instructions, CodeGeneratorContext context)
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
-            gen.CleanIfEmpty();
-            context.SetMarker(context.CodeScope.Statements(),1);
+            context.SetMarker(context.CodeScope.Statements(), 1);
             return base.Begin(instructions, context);
         }
 
@@ -207,10 +205,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(set.Variable, set.Value);
                     break;
                 case SlotAssignment slotAssignment:
-                    context.SetSlotType(slotAssignment.SlotName,slotAssignment.SlotType);
+                    context.SetSlotType(slotAssignment.SlotName, slotAssignment.SlotType);
                     break;
                 case Unflag unflag:
-                    statements.SetVariable(unflag.Variable,false);
+                    statements.SetVariable(unflag.Variable, false);
                     break;
                 case Back back:
                     //implement scene stack? Dictionary access to generates?

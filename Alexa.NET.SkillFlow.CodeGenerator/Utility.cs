@@ -94,14 +94,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == "Generate");
         }
 
-        public static void CleanIfEmpty(this CodeMemberMethod method)
-        {
-            if (method.Statements.Count == 2 && method.Statements[1] is CodeThrowExceptionStatement throwStatement)
-            {
-                method.Statements.Remove(throwStatement);
-            }
-        }
-
         public static CodeTypeReference AsSimpleName(this Type type)
         {
             return new CodeTypeReference(type.Name);

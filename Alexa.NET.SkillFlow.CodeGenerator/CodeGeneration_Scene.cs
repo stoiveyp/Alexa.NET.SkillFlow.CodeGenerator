@@ -44,10 +44,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.AddResponseParams(true);
 
-
-            var throwStatement = new CodeThrowExceptionStatement(new CodeObjectCreateExpression(typeof(NotImplementedException)));
-            method.Statements.Add(throwStatement);
-
             mainClass.Members.Add(method);
             return mainClass;
         }
