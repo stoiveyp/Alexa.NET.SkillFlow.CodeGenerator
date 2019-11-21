@@ -26,6 +26,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
             context.CodeScope.Push(sceneClass.GetGenerateMethod());
+            CodeGeneration_Navigation.RegisterScene(context,scene.Name,new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name),"Generate"));
 
             if (scene.Name.Equals("start", StringComparison.OrdinalIgnoreCase))
             {
@@ -227,6 +228,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case Resume resume:
                     break;
                 case Return returnCmd:
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
             }
             return base.Render(instruction, context);
