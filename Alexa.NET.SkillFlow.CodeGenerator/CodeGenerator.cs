@@ -194,11 +194,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(flag.Variable, true);
                     break;
                 case GoTo gto:
-                    statements.GenerateGoTo(gto.SceneName);
+                    statements.NavigateTo(gto.SceneName);
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case GoToAndReturn goToAndReturn:
-                    statements.GenerateGoTo(goToAndReturn.SceneName);
+                    statements.NavigateTo(goToAndReturn.SceneName);
                     break;
                 case Increase increase:
                     statements.Increase(increase.Variable, increase.Amount);

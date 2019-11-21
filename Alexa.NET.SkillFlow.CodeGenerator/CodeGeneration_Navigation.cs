@@ -10,7 +10,25 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Navigation
     {
-        public static void EnsureNavigation(CodeGeneratorContext context)
+        private static CodeStatementCollection _sceneRegistration;
+        public static void RegisterScene(CodeGeneratorContext context, string sceneName, CodeMethodReferenceExpression runScene)
+        {
+            EnsureNavigation(context);
+            _sceneRegistration.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_scenes"), "Add",
+                new CodePrimitiveExpression(sceneName), runScene));
+        }
+
+        public static void NavigateTo(this CodeStatementCollection statements, string sceneName)
+        {
+            statements.Add(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("await Navigation"),
+                "Navigate",
+                new CodePrimitiveExpression(sceneName),
+                new CodeVariableReferenceExpression("request"),
+                new CodeVariableReferenceExpression("response")));
+        }
+
+        private static void EnsureNavigation(CodeGeneratorContext context)
         {
             if (context.OtherFiles.ContainsKey("Navigation.cs"))
             {
@@ -52,27 +70,44 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.EndDirectives.Add(new CodeRegionDirective(
                 CodeRegionMode.End, string.Empty));
 
-            var lookupType = new CodeTypeReference("Dictionary<string, Func<AlexaRequestInformation<APLSkillRequest>, SkillResponse, Task>>");
-            var lookup = new CodeMemberField(lookupType, "_scenes")
-            {
-                Attributes = MemberAttributes.Static,
-                InitExpression = new CodeObjectCreateExpression(lookupType)
-            };
-            type.Members.Add(lookup);
+            
+            type.Members.Add(CreateLookup());
             type.Members.Add(CreateStaticConstructor());
+            type.Members.Add(CreateGoTo());
             
             return type;
         }
 
-        private static CodeStatementCollection _sceneRegistration;
-
-        public static void RegisterScene(CodeGeneratorContext context, string sceneName, CodeMethodReferenceExpression runScene)
+        private static CodeTypeMember CreateGoTo()
         {
-            EnsureNavigation(context);
-            _sceneRegistration.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_scenes"),"Add",
-                new CodePrimitiveExpression(sceneName),runScene));
+            var gtMethod = new CodeMemberMethod
+            {
+                Name="Navigate",
+                Attributes = MemberAttributes.Static | MemberAttributes.Public,
+                ReturnType = new CodeTypeReference("Task")
+            };
+
+            gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "sceneName"));
+            gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"),"information"));
+            gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"), "response"));
+
+            gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
+                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
+                    new CodeVariableReferenceExpression("sceneName")), "Invoke",
+                new CodeVariableReferenceExpression("information"), new CodeVariableReferenceExpression("response"))));
+
+            return gtMethod;
         }
 
+        private static CodeMemberField CreateLookup()
+        {
+            var lookupType = new CodeTypeReference("Dictionary<string, Func<AlexaRequestInformation<APLSkillRequest>, SkillResponse, Task>>");
+            return new CodeMemberField(lookupType, "_scenes")
+            {
+                Attributes = MemberAttributes.Static,
+                InitExpression = new CodeObjectCreateExpression(lookupType)
+            };
+        }
 
         private static CodeTypeMember CreateStaticConstructor()
         {

@@ -124,7 +124,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             gen.Statements.Add(new CodeVariableDeclarationStatement(typeof(RenderDocumentDirective), variableName,
                 new CodeObjectCreateExpression(typeof(RenderDocumentDirective))));
             var aplRef = new CodeVariableReferenceExpression(variableName);
-            gen.Statements.Add(new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Directives"), "Add", aplRef));
+            gen.Statements.Add(new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Directives"), "Add", aplRef));
             gen.Statements.Add(new CodeAssignStatement(new CodePropertyReferenceExpression(aplRef, "Document"),
                 new CodeObjectCreateExpression(typeof(APLDocument))));
             return aplRef;

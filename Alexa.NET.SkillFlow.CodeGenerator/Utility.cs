@@ -81,10 +81,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
-            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "responseBody"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "response"));
             if (includeResponseVariable)
             {
-                var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "response", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Response"));
+                var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "responseBody", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Response"));
                 method.Statements.Add(assignment);
             }
         }

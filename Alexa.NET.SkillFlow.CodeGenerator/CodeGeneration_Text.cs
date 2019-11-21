@@ -12,7 +12,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void GenerateSay(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
             CodeGeneration_Randomiser.Ensure(context);
-            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "OutputSpeech");
+            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "OutputSpeech");
             var right = text.AsCodeOutputSpeech(generate);
             var singleSayAssign = new CodeAssignStatement(left, right);
             generate.Statements.Add(singleSayAssign);
@@ -28,7 +28,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             generate.Statements.Add(new CodeAssignStatement(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("reprompt"), "OutputSpeech"), right));
 
-            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Reprompt");
+            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Reprompt");
             var singleSayAssign = new CodeAssignStatement(left, new CodeVariableReferenceExpression("reprompt"));
             generate.Statements.Add(singleSayAssign);
         }

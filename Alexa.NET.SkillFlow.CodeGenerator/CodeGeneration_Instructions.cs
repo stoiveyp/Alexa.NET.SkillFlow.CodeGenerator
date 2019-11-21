@@ -60,15 +60,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return getStmt;
         }
 
-        public static void GenerateGoTo(this CodeStatementCollection statements, string sceneName)
-        {
-            statements.Add(new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("await " + CodeGeneration_Scene.SceneClassName(sceneName)),
-                "Generate",
-                new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("responseBody")));
-        }
-
         public static void EnsureStateMaintenance(CodeGeneratorContext context)
         {
             if (context.OtherFiles.ContainsKey("State.cs"))
