@@ -17,14 +17,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             Assert.True(context.SceneFiles.ContainsKey("APLHelper"));
         }
 
-        [Fact]
-        public async Task VisualGeneratesAPLLayoutSupportingFile()
-        {
-            var story = TestStory();
-            var context = await GenerateTestStory(story);
-            Assert.True(context.OtherFiles.ContainsKey("layouts/default.json"));
-        }
-
         private readonly CodeGenerator _generator = new CodeGenerator();
 
         private async Task<CodeGeneratorContext> GenerateTestStory(Story story = null)

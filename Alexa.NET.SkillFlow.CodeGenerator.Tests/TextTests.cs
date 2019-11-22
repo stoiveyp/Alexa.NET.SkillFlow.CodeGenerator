@@ -8,21 +8,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
     public class TextTests
     {
         [Fact]
-        public async Task SingleSayAddsDirectToResponse()
-        {
-            var story = TestStory();
-            var context = await GenerateTestStory(story);
-            var className = context.GetClass("Scene_Test");
-            var generate = className.GenerateMethod();
-            var setSayText = generate.Statements.OfType<CodeAssignStatement>().Skip(1).FirstOrDefault();
-
-            Assert.NotNull(setSayText);
-            var leftHandSide = Assert.IsType<CodePropertyReferenceExpression>(setSayText.Left);
-            var rightHandSide = Assert.IsType<CodeVariableReferenceExpression>(setSayText.Right);
-            Assert.Equal("say_0",rightHandSide.VariableName);
-        }
-
-        [Fact]
         public async Task MultipleSayAddsRandomMethodSelection()
         {
             var story = TestStory();
