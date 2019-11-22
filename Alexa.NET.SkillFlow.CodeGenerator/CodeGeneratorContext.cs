@@ -77,7 +77,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private async Task OutputRequestHandlers(CodeDomProvider csharp, string directoryFullName)
         {
-            throw new InvalidOperationException("You need to wire up prepend and append into scene navigation");
+            //Need to wire up prepend and append into scene navigation
             await Task.WhenAll(RequestHandlers.Select(async c =>
                 {
                     using (var textWriter =
