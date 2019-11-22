@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29411.108
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alexa.NET.SkillFlow.CodeGenerator", "Alexa.NET.SkillFlow.CodeGenerator\Alexa.NET.SkillFlow.CodeGenerator.csproj", "{A8159FD0-77E1-4153-BF1C-575263BCBF48}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alexa.NET.SkillFlow.CodeGenerator.Tests", "Alexa.NET.SkillFlow.CodeGenerator.Tests\Alexa.NET.SkillFlow.CodeGenerator.Tests.csproj", "{5221B673-0FC5-45C6-A056-D909CE9A7C38}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alexa.NET.SkillFlow.Tool", "Alexa.NET.SkillFlow.Tool\Alexa.NET.SkillFlow.Tool.csproj", "{27642FF5-E685-4F1D-8353-4606FA69C9E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C13ECC84-E709-496C-AF7A-E5F134060F7C}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8159FD0-77E1-4153-BF1C-575263BCBF48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8159FD0-77E1-4153-BF1C-575263BCBF48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8159FD0-77E1-4153-BF1C-575263BCBF48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8159FD0-77E1-4153-BF1C-575263BCBF48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5221B673-0FC5-45C6-A056-D909CE9A7C38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5221B673-0FC5-45C6-A056-D909CE9A7C38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5221B673-0FC5-45C6-A056-D909CE9A7C38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5221B673-0FC5-45C6-A056-D909CE9A7C38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27642FF5-E685-4F1D-8353-4606FA69C9E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27642FF5-E685-4F1D-8353-4606FA69C9E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27642FF5-E685-4F1D-8353-4606FA69C9E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27642FF5-E685-4F1D-8353-4606FA69C9E8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FE26283-6EF6-4145-B9E6-8D2EABDC66A7}
+	EndGlobalSection
+EndGlobal
