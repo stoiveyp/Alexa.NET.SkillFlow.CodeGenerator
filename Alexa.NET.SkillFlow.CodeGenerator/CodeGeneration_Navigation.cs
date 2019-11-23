@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Alexa.NET.Request;
 using Alexa.NET.RequestHandlers;
 using Alexa.NET.Response;
@@ -18,12 +19,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodePrimitiveExpression(sceneName), runScene));
         }
 
-        public static void NavigateTo(this CodeStatementCollection statements, string sceneName)
+        public static void GoToScene(this CodeStatementCollection statements, string sceneName)
         {
             statements.Add(new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("await Navigation"),
-                "Navigate",
+                CodeConstants.NavigationMethodName,
                 new CodePrimitiveExpression(sceneName),
+                new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
                 new CodeVariableReferenceExpression("request"),
                 new CodeVariableReferenceExpression("response")));
         }
@@ -45,10 +47,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("System"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
-            ns.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
-            ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             code.Namespaces.Add(ns);
 
             ns.Types.Add(navigationClass);
@@ -73,35 +73,37 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             
             type.Members.Add(CreateLookup());
             type.Members.Add(CreateStaticConstructor());
-            type.Members.Add(CreateGoTo());
-            
+            type.Members.Add(CreateInteract());
+
             return type;
         }
 
-        private static CodeTypeMember CreateGoTo()
+        private static CodeTypeMember CreateInteract()
         {
             var gtMethod = new CodeMemberMethod
             {
-                Name="Navigate",
+                Name=CodeConstants.NavigationMethodName,
                 Attributes = MemberAttributes.Static | MemberAttributes.Public,
                 ReturnType = new CodeTypeReference("Task")
             };
 
             gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "sceneName"));
-            gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"),"information"));
-            gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"), "response"));
+            gtMethod.AddInteractionParams();
+            gtMethod.AddResponseParams();
 
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeVariableReferenceExpression("sceneName")), "Invoke",
-                new CodeVariableReferenceExpression("information"), new CodeVariableReferenceExpression("response"))));
+                new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), 
+                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
 
             return gtMethod;
         }
 
         private static CodeMemberField CreateLookup()
         {
-            var lookupType = new CodeTypeReference("Dictionary<string, Func<AlexaRequestInformation<APLSkillRequest>, SkillResponse, Task>>");
+            var lookupType = typeof(Dictionary<string, Func<string, AlexaRequestInformation<APLSkillRequest>, SkillResponse, Task>>);
             return new CodeMemberField(lookupType, "_scenes")
             {
                 Attributes = MemberAttributes.Static,

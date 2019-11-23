@@ -24,10 +24,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var sceneClass = code.FirstType();
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
-            context.CodeScope.Push(sceneClass.GetGenerateMethod());
+            context.CodeScope.Push(sceneClass.GetMainMethod());
 
             CodeGeneration_Navigation.RegisterScene(context, scene.Name,
-                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), CodeConstants.ScenePrimaryMethod));
+                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), CodeConstants.SceneInteractionMethod));
 
             if (scene.Name.Equals(SpecialScenes.Start, StringComparison.OrdinalIgnoreCase))
             {
@@ -112,7 +112,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         protected override Task Begin(SceneInstructions instructions, CodeGeneratorContext context)
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
-            context.SetMarker(context.CodeScope.Statements(), 1);
             return base.Begin(instructions, context);
         }
 
@@ -129,12 +128,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
                 statements.Add(codeIf);
                 context.CodeScope.Push(codeIf);
-                context.SetMarker(statements);
             }
             else if (instructions is Hear hear)
             {
                 CodeGeneration_Interaction.AddHearMarker(context);
-
 
                 CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
             }
@@ -152,7 +149,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             if (context.CodeScope.Peek() is CodeTypeDeclaration typeDeclaration)
             {
-                context.CodeScope.Push(typeDeclaration.GetGenerateMethod());
+                context.CodeScope.Push(typeDeclaration.GetMainMethod());
             }
 
             return base.End(instructions, context);
@@ -167,7 +164,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements = member.Statements;
                     break;
                 case CodeTypeDeclaration codeType:
-                    statements = codeType.GetGenerateMethod().Statements;
+                    statements = codeType.GetMainMethod().Statements;
                     break;
                 case CodeConditionStatement stmt:
                     statements = stmt.TrueStatements;
@@ -192,11 +189,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(flag.Variable, true);
                     break;
                 case GoTo gto:
-                    statements.NavigateTo(gto.SceneName);
+                    statements.GoToScene(gto.SceneName);
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case GoToAndReturn goToAndReturn:
-                    statements.NavigateTo(goToAndReturn.SceneName);
+                    statements.GoToScene(goToAndReturn.SceneName);
                     break;
                 case Increase increase:
                     statements.Increase(increase.Variable, increase.Amount);

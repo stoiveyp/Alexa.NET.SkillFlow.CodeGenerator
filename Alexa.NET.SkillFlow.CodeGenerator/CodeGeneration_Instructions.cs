@@ -5,12 +5,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Instructions
     {
-        public static void SetMarker(this CodeGeneratorContext context, CodeStatementCollection statements, int skip = 0)
-        {
-            EnsureStateMaintenance(context);
-            SetVariable(statements, "_marker", context.GenerateMarker(skip), false);
-        }
-
         public static void SetVariable(this CodeStatementCollection statements, string variableName, object value, bool gameVariable = true)
         {
             var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",

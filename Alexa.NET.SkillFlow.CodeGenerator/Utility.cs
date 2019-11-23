@@ -14,11 +14,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return unit.Namespaces[0].Types[0];
         }
 
-        public static CodeStatementCollection HandleStatements(this CodeTypeDeclaration type)
-        {
-            return MethodStatements(type, "Handle");
-        }
-
         public static CodeStatementCollection MethodStatements(this CodeTypeDeclaration type, string methodName, bool generate = false)
         {
             var candidate = type.Members.OfType<CodeMemberMethod>()
@@ -30,11 +25,30 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static CodeMethodInvokeExpression RunMarker(this CodeGeneratorContext context, bool wait = true)
         {
             return new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression(
-                    (wait ? "await " : string.Empty) + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod) context.CodeScope.First()).Name,
-                new CodeVariableReferenceExpression("information"),
-                new CodeVariableReferenceExpression("response"));
+                new CodeTypeReferenceExpression("await Navigation"),
+                CodeConstants.NavigationMethodName,
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), 
+                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName)
+            );
+        }
+
+        public static void AddBeforeReturn(this CodeStatementCollection statements, params CodeObject[] codes)
+        {
+            var last = statements[statements.Count - 1];
+            statements.Remove(last);
+            foreach (var code in codes)
+            {
+                if (code is CodeStatement stmt)
+                {
+                    statements.Add(stmt);
+                }
+                else if (code is CodeExpression expr)
+                {
+                    statements.Add(expr);
+                }
+            }
+            
+            statements.Add(last);
         }
 
         public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
@@ -77,6 +91,28 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return (array ?? new T[] { }).Concat(toAdd).ToArray();
         }
 
+        public static void AddInteractionParams(this CodeMemberMethod method)
+        {
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string),CodeConstants.InteractionParameterName));
+        }
+        
+        public static CodeMethodInvokeExpression AddFlowParameters(this CodeMethodInvokeExpression method)
+        {
+            method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
+            method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName));
+            return method;
+        }
+
+        public static void AddInteraction(this CodeStatementCollection statements, string interactionName,
+            CodeMethodInvokeExpression method)
+        {
+            statements.AddBeforeReturn(
+                new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":"),
+                method,
+                new CodeSnippetExpression("\t\t\tbreak")
+                );
+        }
+
         public static void AddResponseParams(this CodeMemberMethod method, bool includeResponseVariable = false)
         {
             method.Parameters.Add(
@@ -89,7 +125,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
         }
 
-        public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)
+        public static CodeMemberMethod GetMainMethod(this CodeTypeDeclaration currentClass)
         {
             return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == CodeConstants.ScenePrimaryMethod);
         }
