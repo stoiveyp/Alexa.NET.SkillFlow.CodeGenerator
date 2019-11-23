@@ -73,9 +73,32 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             
             type.Members.Add(CreateLookup());
             type.Members.Add(CreateStaticConstructor());
+            type.Members.Add(CreateInteractLatestScene());
             type.Members.Add(CreateInteract());
 
             return type;
+        }
+
+        private static CodeTypeMember CreateInteractLatestScene()
+        {
+            var gtMethod = new CodeMemberMethod
+            {
+                Name = CodeConstants.NavigationMethodName,
+                Attributes = MemberAttributes.Static | MemberAttributes.Public,
+                ReturnType = new CodeTypeReference("Task")
+            };
+
+            gtMethod.AddInteractionParams();
+            gtMethod.AddResponseParams();
+
+            gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
+                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
+                    new CodeVariableReferenceExpression("sceneName")), "Invoke",
+                new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+
+            return gtMethod;
         }
 
         private static CodeTypeMember CreateInteract()

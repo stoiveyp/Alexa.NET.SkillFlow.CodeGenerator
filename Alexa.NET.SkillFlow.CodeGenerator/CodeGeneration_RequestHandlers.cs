@@ -127,7 +127,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeVariableDeclarationStatement(
                     new CodeTypeReference("var"),
                     CodeConstants.ResponseVariableName,
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)), "Tell", new CodePropertyReferenceExpression(new CodeTypeReferenceExpression(typeof(string)), "Empty"))
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)),
+                        "Ask",
+                        new CodePropertyReferenceExpression(new CodeTypeReferenceExpression(typeof(string)), "Empty"),
+                    new CodePrimitiveExpression(null))
                 )
             );
 
