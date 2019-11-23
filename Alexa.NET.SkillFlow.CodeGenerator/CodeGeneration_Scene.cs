@@ -37,7 +37,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var method = new CodeMemberMethod
             {
-                Name = "Generate",
+                Name = CodeConstants.ScenePrimaryMethod,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
                 ReturnType = new CodeTypeReference("async Task")
             };

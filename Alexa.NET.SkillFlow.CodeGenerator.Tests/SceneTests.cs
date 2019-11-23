@@ -40,7 +40,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             var context = await GenerateTestStory();
             var classType = context.GetClass("Scene_Test");
             var method = classType.Members.OfType<CodeMemberMethod>().First();
-            Assert.Equal("Generate",method.Name);
+            Assert.Equal(CodeConstants.ScenePrimaryMethod, method.Name);
         }
 
         private CodeGenerator _generator;

@@ -32,7 +32,7 @@
 		}
 	*recap
 	    Morning's done so what do you want to do?
-
+		
 @do not go on a hike
 	*say
 		You continue to do chores and play video games and the day passes you by. You go to sleep feeling cranky. What a waste of a beautiful day. The end.	

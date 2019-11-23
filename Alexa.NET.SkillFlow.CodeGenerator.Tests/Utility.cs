@@ -20,9 +20,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
             return classType;
         }
 
-        public static CodeMemberMethod GenerateMethod(this CodeTypeDeclaration classType)
+        public static CodeMemberMethod MainMethod(this CodeTypeDeclaration classType)
         {
-            return classType.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == "Generate");
+            return classType.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == CodeConstants.ScenePrimaryMethod);
         }
     }
 }

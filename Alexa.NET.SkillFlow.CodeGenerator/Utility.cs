@@ -91,7 +91,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)
         {
-            return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == "Generate");
+            return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == CodeConstants.ScenePrimaryMethod);
         }
 
         public static CodeTypeReference AsSimpleName(this Type type)

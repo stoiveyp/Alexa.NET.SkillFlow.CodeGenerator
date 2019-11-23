@@ -27,9 +27,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             context.CodeScope.Push(sceneClass.GetGenerateMethod());
 
             CodeGeneration_Navigation.RegisterScene(context, scene.Name,
-                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), "Generate"));
+                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), CodeConstants.ScenePrimaryMethod));
 
-            if (scene.Name.Equals("start", StringComparison.OrdinalIgnoreCase))
+            if (scene.Name.Equals(SpecialScenes.Start, StringComparison.OrdinalIgnoreCase))
             {
                 context.CreateLaunchRequestHandler();
             }
