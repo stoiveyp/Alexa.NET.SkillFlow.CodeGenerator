@@ -6,6 +6,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeConstants
     {
+        public const string GetCurrentSceneMethodName = "GetScene";
+        public const string AddInteractionMethodName = "AddInteraction";
         public const string MainSceneMarker = "_main";
         public const string RequestVariableName = "request";
         public const string ResponseVariableName = "response";

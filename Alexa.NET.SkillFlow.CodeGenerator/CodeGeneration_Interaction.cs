@@ -25,7 +25,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
                 ReturnType = new CodeTypeReference("async Task")
             };
-            newMethod.AddResponseParams();
+            newMethod.AddFlowParams();
             type.Members.Add(newMethod);
             context.CodeScope.Push(newMethod);
 

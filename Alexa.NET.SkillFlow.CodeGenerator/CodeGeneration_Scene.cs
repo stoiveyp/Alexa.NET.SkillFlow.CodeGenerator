@@ -46,7 +46,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("async Task")
             };
 
-            method.AddResponseParams(true);
+            method.AddFlowParams(true);
             return method;
         }
 
@@ -59,7 +59,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("async Task")
             };
             method.AddInteractionParams();
-            method.AddResponseParams();
+            method.AddFlowParams();
             var statements = method.Statements;
 
             statements.Add(new CodeSnippetStatement("\t\tswitch("+ CodeConstants.InteractionParameterName +"){"));

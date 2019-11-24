@@ -27,7 +27,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("await Navigation"),
                 CodeConstants.NavigationMethodName,
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), 
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
                 new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName)
             );
         }
@@ -47,7 +47,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.Add(expr);
                 }
             }
-            
+
             statements.Add(last);
         }
 
@@ -93,9 +93,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void AddInteractionParams(this CodeMemberMethod method)
         {
-            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string),CodeConstants.InteractionParameterName));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), CodeConstants.InteractionParameterName));
         }
-        
+
         public static CodeMethodInvokeExpression AddFlowParameters(this CodeMethodInvokeExpression method)
         {
             method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
@@ -113,11 +113,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 );
         }
 
-        public static void AddResponseParams(this CodeMemberMethod method, bool includeResponseVariable = false)
+        public static void AddRequestParam(this CodeMemberMethod method)
         {
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
+        }
+
+        public static void AddResponseParam(this CodeMemberMethod method)
+        {
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "response"));
+        }
+
+        public static void AddFlowParams(this CodeMemberMethod method, bool includeResponseVariable = false)
+        {
+            AddRequestParam(method);
+            AddResponseParam(method);
+
             if (includeResponseVariable)
             {
                 var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "responseBody", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Response"));

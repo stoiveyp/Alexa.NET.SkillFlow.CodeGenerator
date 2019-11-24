@@ -38,9 +38,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public Stack<CodeObject> CodeScope { get; set; } = new Stack<CodeObject>();
         public string Marker => GenerateMarker(0);
 
-        public string GenerateMarker(int skip)
+        public string GenerateMarker(int pop, int ignore = 0)
         {
-            return string.Join("_", CodeScope.Skip(skip).Reverse().Select(GetName));
+            return string.Join("_", CodeScope.Skip(pop).Reverse().Skip(ignore).Select(GetName));
         }
 
         private string GetName(CodeObject codeScope)

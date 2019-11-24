@@ -30,6 +30,18 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeVariableReferenceExpression("response")));
         }
 
+        public static CodeMethodInvokeExpression AddInteraction(string sceneName, string interactionName)
+        {
+            var methodInvoke = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Navigation"),
+                CodeConstants.AddInteractionMethodName,
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                new CodePrimitiveExpression(sceneName),
+                new CodePrimitiveExpression(interactionName));
+
+            return methodInvoke;
+        }
+
         private static void EnsureNavigation(CodeGeneratorContext context)
         {
             if (context.OtherFiles.ContainsKey("Navigation.cs"))
@@ -48,6 +60,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
+            ns.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
+            ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
             code.Namespaces.Add(ns);
 
@@ -75,8 +89,115 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateStaticConstructor());
             type.Members.Add(CreateInteractLatestScene());
             type.Members.Add(CreateInteract());
+            type.Members.Add(CreateLogInteractionMethod());
+            type.Members.Add(CreateCurrentSceneMethod());
+            type.Members.Add(CreateResume());
+            //type.Members.Add(CreateEnableCandidateInteraction());
+            //type.Members.Add(CreateGetCandidateInteractions());
+            //type.Members.Add(CreateClearCandidateInteractions());
 
             return type;
+        }
+
+        private const string SceneListItemName = "_scenes";
+        private const string CurrentSceneMethodName = "CurrentScene";
+
+        private static CodeTypeMember CreateResume()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Resume",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference("Task")
+            };
+            method.AddFlowParams();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "sceneList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(SceneListItemName))));
+
+            var startCheck = new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(
+                    new CodeVariableReferenceExpression("sceneList"),
+                    CodeBinaryOperatorType.ValueEquality,
+                    new CodePrimitiveExpression(null)));
+            startCheck.TrueStatements.Add(AddInteraction("start", CodeConstants.MainSceneMarker));
+            startCheck.TrueStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
+                "Interact",
+                new CodePrimitiveExpression("start"),
+                new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+
+            startCheck.FalseStatements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "lastInteraction",
+                new CodeMethodInvokeExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"), "Last"),"Split",new CodePrimitiveExpression('|'))));
+            startCheck.FalseStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Navigation"),
+                "Interact",
+                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"),new CodePrimitiveExpression(0)),
+                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"), new CodePrimitiveExpression(1)),
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+
+            method.Statements.Add(startCheck);
+            return method;
+        }
+
+        private static CodeTypeMember CreateCurrentSceneMethod()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CurrentSceneMethodName,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference(typeof(string))
+            };
+            method.AddRequestParam();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "sceneList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(SceneListItemName))));
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(
+                    new CodeVariableReferenceExpression("sceneList"),
+                    CodeBinaryOperatorType.ValueEquality,
+                    new CodePrimitiveExpression(null)),
+                new CodeStatement[]
+                {
+                    new CodeMethodReturnStatement(
+                        new CodePropertyReferenceExpression(new CodeTypeReferenceExpression(typeof(string)), "Empty"))
+                },
+                new CodeStatement[]
+                {
+                    new CodeVariableDeclarationStatement(typeof(string),"lastInteraction",new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"),"Last")), 
+                    new CodeMethodReturnStatement(new CodeArrayIndexerExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("lastInteraction"),"Split",new CodePrimitiveExpression('|')),new CodePrimitiveExpression(0)))
+                }));
+
+            return method;
+        }
+
+        private static CodeTypeMember CreateLogInteractionMethod()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CodeConstants.AddInteractionMethodName,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            method.AddRequestParam();
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "sceneName"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "interactionName"));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "sceneList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),"GetValue<string[]>",new CodePrimitiveExpression(SceneListItemName))));
+            method.Statements.Add(new CodeSnippetExpression("var list = sceneList == null ? new List<string>() : new List<string>(sceneList)"));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
+                    new CodeVariableReferenceExpression("sceneName"),
+                    new CodePrimitiveExpression("|"),
+                    new CodeVariableReferenceExpression("interactionName"))));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
+                "SetValue",
+                new CodePrimitiveExpression("_scenes"),
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "ToArray")));
+            return method;
         }
 
         private static CodeTypeMember CreateInteractLatestScene()
@@ -89,11 +210,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             };
 
             gtMethod.AddInteractionParams();
-            gtMethod.AddResponseParams();
+            gtMethod.AddFlowParams();
 
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
-                    new CodeVariableReferenceExpression("sceneName")), "Invoke",
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CurrentSceneMethodName,new CodeVariableReferenceExpression("request"))), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
                 new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
                 new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
@@ -112,7 +233,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             gtMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "sceneName"));
             gtMethod.AddInteractionParams();
-            gtMethod.AddResponseParams();
+            gtMethod.AddFlowParams();
 
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
