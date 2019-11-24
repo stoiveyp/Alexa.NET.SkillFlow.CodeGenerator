@@ -41,7 +41,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         }
 
-        public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases)
+        public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases, CodeStatementCollection statements)
         {
             var fallback = hearPhrases.Any(p => p == "*");
             if (fallback)
@@ -78,7 +78,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             if (fallback)
             {
-                CodeGeneration_Fallback.AddToFallback(context,context.RunMarker(false));
+                statements.Add(CodeGeneration_Navigation.EnableCandidate(CodeConstants.FallbackMarker));
             }
 
         }

@@ -30,6 +30,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeVariableReferenceExpression("response")));
         }
 
+        public static void InvokeInteraction(this CodeStatementCollection statements, string interactionName)
+        {
+            statements.Add(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("await Navigation"),
+                CodeConstants.NavigationMethodName,
+                new CodePrimitiveExpression(interactionName),
+                new CodeVariableReferenceExpression("request"),
+                new CodeVariableReferenceExpression("response")));
+        }
+
         public static CodeMethodInvokeExpression AddInteraction(string sceneName, string interactionName)
         {
             var methodInvoke = new CodeMethodInvokeExpression(

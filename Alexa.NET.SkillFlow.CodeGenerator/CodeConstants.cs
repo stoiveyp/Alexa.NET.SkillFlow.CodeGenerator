@@ -6,6 +6,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeConstants
     {
+        public const string FallbackMarker = "_fallback";
         public const string IsCandidateMethodName = "IsCandidate";
         public const string EnableCandidateMethodName = "EnableCandidate";
         public const string ClearCandidateMethodName = "ClearCandidates";

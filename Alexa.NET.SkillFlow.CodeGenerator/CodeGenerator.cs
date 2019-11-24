@@ -133,7 +133,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 CodeGeneration_Interaction.AddHearMarker(context, statements);
 
-                CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
+                CodeGeneration_Interaction.AddIntent(context, hear.Phrases, statements);
             }
 
 

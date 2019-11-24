@@ -35,15 +35,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     ReturnType = new CodeTypeReference("async Task<SkillResponse>")
                 };
 
-                method.Parameters.Add(
-                    new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
-                        "information"));
-                method.Parameters.Add(new CodeParameterDeclarationExpression(new CodeTypeReference("SkillResponse"), "response"));
+                method.AddFlowParams();
                 type.Members.Add(method);
                 statements = method.Statements;
 
-                statements.Add(new CodeSnippetStatement("switch(await information.State.Get<string>(\"_marker\")){"));
-                statements.Add(new CodeSnippetStatement("}"));
+                statements.InvokeInteraction(CodeConstants.FallbackMarker);
                 statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
             }
 
@@ -52,29 +48,32 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void AddToFallback(CodeGeneratorContext context, CodeMethodInvokeExpression methodInvoke)
         {
-            var label = context.GenerateMarker(1);
-            var currentMarkerCase = $"case \"{label}\":";
+            //Fix this to add default to navigation marker
             var methodStmt = Ensure(context).MethodStatements("Fallback");
 
-            var caseStmt = methodStmt.OfType<CodeSnippetStatement>().FirstOrDefault(ccs => ccs.Value == currentMarkerCase);
-            if (caseStmt == null)
-            {
-                caseStmt = new CodeSnippetStatement(currentMarkerCase);
-                methodStmt.Insert(1, caseStmt);
-                methodStmt.Insert(2, new CodeSnippetStatement("break;"));
-            }
+            //var label = context.GenerateMarker(1);
+            //var currentMarkerCase = $"case \"{label}\":";
 
-            var stmtPos = methodStmt.IndexOf(caseStmt);
-            while (!(methodStmt[stmtPos + 1] is CodeSnippetStatement snippet) || snippet.Value != "break;")
-            {
-                methodStmt.RemoveAt(stmtPos + 1);
-            }
 
-            var varName = "var_" + label.ToLower();
-            methodStmt.Insert(stmtPos + 1, new CodeVariableDeclarationStatement(
-                new CodeTypeReference("var"),
-                varName, methodInvoke));
-            methodStmt.Insert(stmtPos + 2, new CodeSnippetStatement($"await {varName};"));
+            //var caseStmt = methodStmt.OfType<CodeSnippetStatement>().FirstOrDefault(ccs => ccs.Value == currentMarkerCase);
+            //if (caseStmt == null)
+            //{
+            //    caseStmt = new CodeSnippetStatement(currentMarkerCase);
+            //    methodStmt.Insert(1, caseStmt);
+            //    methodStmt.Insert(2, new CodeSnippetStatement("break;"));
+            //}
+
+            //var stmtPos = methodStmt.IndexOf(caseStmt);
+            //while (!(methodStmt[stmtPos + 1] is CodeSnippetStatement snippet) || snippet.Value != "break;")
+            //{
+            //    methodStmt.RemoveAt(stmtPos + 1);
+            //}
+
+            //var varName = "var_" + label.ToLower();
+            //methodStmt.Insert(stmtPos + 1, new CodeVariableDeclarationStatement(
+            //    new CodeTypeReference("var"),
+            //    varName, methodInvoke));
+            //methodStmt.Insert(stmtPos + 2, new CodeSnippetStatement($"await {varName};"));
         }
     }
 }
