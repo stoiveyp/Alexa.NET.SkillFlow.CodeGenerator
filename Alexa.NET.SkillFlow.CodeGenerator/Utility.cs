@@ -104,13 +104,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         }
 
         public static void AddInteraction(this CodeStatementCollection statements, string interactionName,
-            CodeMethodInvokeExpression method)
+            CodeMethodInvokeExpression method, bool whenCandidate = false)
         {
-            statements.AddBeforeReturn(
-                new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":"),
-                method,
-                new CodeSnippetExpression("\t\t\tbreak")
+            if (whenCandidate)
+            {
+                statements.AddBeforeReturn(
+                    new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\" when Navigation.IsCandidate(request,\"{interactionName}\"):"),
+                    method,
+                    new CodeSnippetExpression("\t\t\tbreak")
                 );
+            }
+            else
+            {
+                statements.AddBeforeReturn(
+                    new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":"),
+                    method,
+                    new CodeSnippetExpression("\t\t\tbreak")
+                );
+            }
         }
 
         public static void AddRequestParam(this CodeMemberMethod method)

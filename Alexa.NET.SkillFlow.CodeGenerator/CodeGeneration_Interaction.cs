@@ -10,7 +10,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Interaction
     {
-        public static void AddHearMarker(CodeGeneratorContext context)
+        public static void AddHearMarker(CodeGeneratorContext context, CodeStatementCollection statements)
         {
             while (context.CodeScope.Peek().GetType() != typeof(CodeTypeDeclaration))
             {
@@ -36,7 +36,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 newMethod.Name);
             invoke.AddFlowParameters();
 
-            interactions.AddInteraction(context.Marker,invoke);
+            statements.Add(CodeGeneration_Navigation.EnableCandidate(context.Marker));
+            interactions.AddInteraction(context.Marker,invoke,true);
 
         }
 

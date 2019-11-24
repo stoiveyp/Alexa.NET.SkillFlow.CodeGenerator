@@ -131,7 +131,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             else if (instructions is Hear hear)
             {
-                CodeGeneration_Interaction.AddHearMarker(context);
+                CodeGeneration_Interaction.AddHearMarker(context, statements);
 
                 CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
             }

@@ -319,5 +319,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             _sceneRegistration = constructor.Statements;
             return constructor;
         }
+
+        public static CodeMethodInvokeExpression EnableCandidate(string interactionName)
+        {
+            return new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
+                CodeConstants.EnableCandidateMethodName,
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                new CodePrimitiveExpression(interactionName));
+        }
     }
 }
