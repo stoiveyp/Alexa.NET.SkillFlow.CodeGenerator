@@ -92,15 +92,73 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateLogInteractionMethod());
             type.Members.Add(CreateCurrentSceneMethod());
             type.Members.Add(CreateResume());
-            //type.Members.Add(CreateEnableCandidateInteraction());
-            //type.Members.Add(CreateGetCandidateInteractions());
-            //type.Members.Add(CreateClearCandidateInteractions());
+            type.Members.Add(CreateEnableCandidateInteraction());
+            type.Members.Add(CreateIsEnabledCandidateInteractions());
+            type.Members.Add(CreateClearCandidateInteractions());
 
             return type;
         }
 
+        private static CodeTypeMember CreateIsEnabledCandidateInteractions()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CodeConstants.IsCandidateMethodName,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference(typeof(bool))
+            };
+
+            method.AddRequestParam();
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "candidate"));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "candidateList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(CandidateVariableName))));
+            method.Statements.Add(new CodeSnippetExpression("var list = candidateList == null ? new List<string>() : new List<string>(candidateList)"));
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Contains",
+                new CodeVariableReferenceExpression("candidate"))));
+            return method;
+        }
+
+        private static CodeTypeMember CreateEnableCandidateInteraction()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CodeConstants.EnableCandidateMethodName,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            method.AddRequestParam();
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "interactionName"));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "candidateList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(CandidateVariableName))));
+            method.Statements.Add(new CodeSnippetExpression("var list = candidateList == null ? new List<string>() : new List<string>(candidateList)"));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",
+                new CodeVariableReferenceExpression("interactionName")));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
+                "SetValue",
+                new CodePrimitiveExpression(CandidateVariableName),
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "ToArray")));
+            return method;
+        }
+
         private const string SceneListItemName = "_scenes";
-        private const string CurrentSceneMethodName = "CurrentScene";
+        private const string CandidateVariableName = "_candidates";
+
+        private static CodeTypeMember CreateClearCandidateInteractions()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CodeConstants.ClearCandidateMethodName,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+            method.AddRequestParam();
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                "Clear",
+                new CodePrimitiveExpression(CandidateVariableName)));
+            return method;
+        }
 
         private static CodeTypeMember CreateResume()
         {
@@ -146,7 +204,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var method = new CodeMemberMethod
             {
-                Name = CurrentSceneMethodName,
+                Name = CodeConstants.CurrentSceneMethodName,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
                 ReturnType = new CodeTypeReference(typeof(string))
             };
@@ -214,7 +272,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CurrentSceneMethodName,new CodeVariableReferenceExpression("request"))), "Invoke",
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CodeConstants.CurrentSceneMethodName, new CodeVariableReferenceExpression("request"))), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
                 new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
                 new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
