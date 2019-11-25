@@ -145,8 +145,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     new CodeTypeReferenceExpression("await Navigation"),
                     CodeConstants.NavigationMethodName,
                     new CodePrimitiveExpression(context.Marker),
-                    new CodeVariableReferenceExpression("request"),
-                    new CodeVariableReferenceExpression("response")))));
+                    new CodeVariableReferenceExpression("request")))));
         }
     }
 }
