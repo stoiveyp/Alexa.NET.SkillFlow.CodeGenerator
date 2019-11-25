@@ -99,28 +99,32 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static CodeMethodInvokeExpression AddFlowParameters(this CodeMethodInvokeExpression method)
         {
             method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
-            method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName));
             return method;
         }
 
-        public static void AddInteraction(this CodeStatementCollection statements, string interactionName,
+        public static CodeSnippetStatement AddInteraction(this CodeStatementCollection statements, string interactionName,
             CodeMethodInvokeExpression method, bool whenCandidate = false)
         {
             if (whenCandidate)
             {
-                statements.AddBeforeReturn(
-                    new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\" when Navigation.IsCandidate(request,\"{interactionName}\"):"),
+                var snippet = new CodeSnippetStatement(
+                    $"\t\t\tcase \"{interactionName}\" when Navigation.IsCandidate(request,\"{interactionName}\"):");
+                statements.AddBeforeReturn(snippet
+                    ,
                     method,
                     new CodeSnippetExpression("\t\t\tbreak")
                 );
+                return snippet;
             }
             else
             {
+                var snippet = new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":");
                 statements.AddBeforeReturn(
-                    new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":"),
+                    snippet,
                     method,
                     new CodeSnippetExpression("\t\t\tbreak")
                 );
+                return snippet;
             }
         }
 
@@ -135,16 +139,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "response"));
         }
 
-        public static void AddFlowParams(this CodeMemberMethod method, bool includeResponseVariable = false)
+        public static void AddFlowParams(this CodeMemberMethod method)
         {
             AddRequestParam(method);
-            AddResponseParam(method);
-
-            if (includeResponseVariable)
-            {
-                var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "responseBody", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Response"));
-                method.Statements.Add(assignment);
-            }
         }
 
         public static CodeMemberMethod GetMainMethod(this CodeTypeDeclaration currentClass)

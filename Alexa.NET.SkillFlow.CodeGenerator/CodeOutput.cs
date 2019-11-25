@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Linq;
-using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Management.Skills;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator

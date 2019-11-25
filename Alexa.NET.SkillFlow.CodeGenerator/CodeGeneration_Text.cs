@@ -42,7 +42,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("async Task")
             };
 
-            method.AddFlowParams(true);
+            method.AddFlowParams();
             type.Members.Add(method);
             GenerateSay(method, text, context);
 

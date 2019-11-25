@@ -21,5 +21,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public const string SceneInteractionMethod = "Interact";
         public const string ScenePrimaryMethod = "Main";
         public const string NavigationMethodName = "Interact";
+        public const string OutputGenerateMethod = "Generate";
     }
 }

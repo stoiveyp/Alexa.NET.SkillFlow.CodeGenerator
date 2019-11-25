@@ -14,7 +14,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var code = new CodeCompileUnit();
             var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
             code.Namespaces.Add(ns);
@@ -46,7 +45,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("async Task")
             };
 
-            method.AddFlowParams(true);
+            method.AddFlowParams();
             return method;
         }
 

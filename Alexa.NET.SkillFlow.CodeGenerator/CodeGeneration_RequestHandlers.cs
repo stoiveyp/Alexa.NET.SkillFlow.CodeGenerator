@@ -1,11 +1,5 @@
 ﻿using System;
 using System.CodeDom;
-using System.Linq;
-using System.Linq.Expressions;
-using Alexa.NET.Request;
-using Alexa.NET.Request.Type;
-using Alexa.NET.RequestHandlers;
-using Alexa.NET.RequestHandlers.Handlers;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -29,6 +23,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 return context.RequestHandlers[intentName];
             }
+
+            CodeGeneration_Output.Ensure(context);
 
             var mainClass = GenerateIntentHandler(intentName, context);
             return CreateRequestHandlerUnit(context, intentName, mainClass);
@@ -68,8 +64,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var resumeMethod = new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("await Navigation"),
                 CodeConstants.NavigationResumeMethodName,
-                new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response"));
+                new CodeVariableReferenceExpression("request"));
 
             statements.AddBeforeReturn(resumeMethod);
             return handler;
@@ -89,16 +84,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(className));
                 mainClass.Members.Add(constructor);
             });
-
-            var statements = handler.MethodStatements(CodeConstants.HandlerPrimaryMethod);
-            var resumeMethod = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("await Navigation"),
-                CodeConstants.NavigationMethodName,
-                new CodePrimitiveExpression(className),
-                new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response"));
-
-            statements.AddBeforeReturn(resumeMethod);
 
             return handler;
         }
@@ -134,7 +119,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 )
             );
 
-            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Output"),CodeConstants.OutputGenerateMethod,new CodeVariableReferenceExpression("request"))));
             mainClass.Members.Add(method);
             return mainClass;
         }

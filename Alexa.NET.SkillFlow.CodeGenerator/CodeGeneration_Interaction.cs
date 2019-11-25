@@ -38,7 +38,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             statements.Add(CodeGeneration_Navigation.EnableCandidate(context.Marker));
             interactions.AddInteraction(context.Marker,invoke,true);
-
         }
 
         public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases, CodeStatementCollection statements)
@@ -66,7 +65,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
                 foreach (var it in nulls.ToArray())
                 {
-                    context.CreateIntentRequestHandler(intentName);
+                    var unit = context.CreateIntentRequestHandler(intentName);
+                    AddHandlerCheck(unit.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod), context);
                     dictionary[it] = intent;
                 }
             }
@@ -106,12 +106,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
                 dictionary[item] = intent;
                 var newHandler = context.CreateIntentRequestHandler(safeItemName);
+                var sharedStatements = sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod);
                 var newStatements = newHandler.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod);
-                foreach (var statement in sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod)
-                    .OfType<CodeConditionStatement>())
+
+                for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2;stmtIndex++)
                 {
-                    newStatements.Add(statement);
+                    newStatements.AddBeforeReturn(sharedStatements[stmtIndex]);
                 }
+
+                
+                AddHandlerCheck(newStatements, context);
             }
         
 
@@ -127,6 +131,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var constructor = handlerType.Members.OfType<CodeConstructor>().First();
             constructor.BaseConstructorArgs.Clear();
             constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(safeItemName));
+        }
+
+        private static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context)
+        {
+            newStatements.AddBeforeReturn(new CodeConditionStatement(
+                new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Navigation"), 
+                        CodeConstants.IsCandidateMethodName,
+                        new CodeVariableReferenceExpression("request"),
+                        new CodePrimitiveExpression(context.Marker)),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("await Navigation"),
+                    CodeConstants.NavigationMethodName,
+                    new CodePrimitiveExpression(context.Marker),
+                    new CodeVariableReferenceExpression("request"),
+                    new CodeVariableReferenceExpression("response")))));
         }
     }
 }

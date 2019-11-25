@@ -26,8 +26,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 CodeConstants.NavigationMethodName,
                 new CodePrimitiveExpression(sceneName),
                 new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
-                new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response"));
+                new CodeVariableReferenceExpression("request"));
         }
 
         public static CodeMethodInvokeExpression InvokeInteraction(string interactionName)
@@ -36,8 +35,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeTypeReferenceExpression("await Navigation"),
                 CodeConstants.NavigationMethodName,
                 new CodePrimitiveExpression(interactionName),
-                new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response"));
+                new CodeVariableReferenceExpression("request"));
         }
 
         public static CodeMethodInvokeExpression AddInteraction(string sceneName, string interactionName)
@@ -193,8 +191,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 "Interact",
                 new CodePrimitiveExpression("start"),
                 new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
-                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
 
             startCheck.FalseStatements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "lastInteraction",
                 new CodeMethodInvokeExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"), "Last"),"Split",new CodePrimitiveExpression('|'))));
@@ -203,8 +200,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 "Interact",
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"),new CodePrimitiveExpression(0)),
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"), new CodePrimitiveExpression(1)),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
-                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
 
             method.Statements.Add(startCheck);
             return method;
@@ -284,8 +280,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CodeConstants.CurrentSceneMethodName, new CodeVariableReferenceExpression("request"))), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
-                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
 
             return gtMethod;
         }
@@ -307,15 +302,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeVariableReferenceExpression("sceneName")), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), 
-                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName))));
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
 
             return gtMethod;
         }
 
         private static CodeMemberField CreateLookup()
         {
-            var lookupType = typeof(Dictionary<string, Func<string, AlexaRequestInformation<APLSkillRequest>, SkillResponse, Task>>);
+            var lookupType = typeof(Dictionary<string, Func<string, AlexaRequestInformation<APLSkillRequest>, Task>>);
             return new CodeMemberField(lookupType, "_scenes")
             {
                 Attributes = MemberAttributes.Static,
