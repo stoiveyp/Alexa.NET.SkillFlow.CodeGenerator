@@ -1,4 +1,5 @@
-﻿using System.CodeDom;
+﻿using System;
+using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
@@ -107,27 +108,34 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static Task OutputSceneFiles(Dictionary<string, CodeCompileUnit> scenes, CodeDomProvider csharp, string directoryFullName)
         {
-            var prepend = scenes.Any(kvp => kvp.Key.Equals(CodeGeneration_Scene.SceneClassName("Global Prepend"), System.StringComparison.OrdinalIgnoreCase));
-            var append = scenes.Any(kvp => kvp.Key.Equals(CodeGeneration_Scene.SceneClassName("Global Append"), System.StringComparison.OrdinalIgnoreCase));
+            var prependScene = CodeGeneration_Scene.SceneClassName("Global Prepend");
+            var appendScene = CodeGeneration_Scene.SceneClassName("Global Append");
+            var prepend = scenes.Any(kvp => kvp.Key.Equals(prependScene, System.StringComparison.OrdinalIgnoreCase));
+            var append = scenes.Any(kvp => kvp.Key.Equals(appendScene, System.StringComparison.OrdinalIgnoreCase));
 
             return Task.WhenAll(scenes.Select(async c =>
             {
-                var interaction = c.Value.FirstType().MethodStatements(CodeConstants.SceneInteractionMethod);
-                if (interaction?.OfType<CodeSnippetStatement>().Any() ?? false)
+                var type = c.Value.FirstType();
+                if (!type.Name.Equals(prependScene,StringComparison.OrdinalIgnoreCase) && 
+                    !type.Name.Equals(appendScene, StringComparison.OrdinalIgnoreCase))
                 {
-                    var mainCall = interaction.OfType<CodeSnippetStatement>()
-                        .First(ss => ss.Value.EndsWith(CodeConstants.ScenePrimaryMethod.ToLower() + "\":"));
-                    var mainInteract = interaction[interaction.IndexOf(mainCall) + 1];
-                    if (prepend)
+                    var interaction = c.Value.FirstType().MethodStatements(CodeConstants.SceneInteractionMethod);
+                    if (interaction?.OfType<CodeSnippetStatement>().Any() ?? false)
                     {
-                        interaction.Insert(interaction.IndexOf(mainInteract),
-                            new CodeExpressionStatement(CodeGeneration_Navigation.GoToScene("global prepend")));
-                    }
+                        var mainCall = interaction.OfType<CodeSnippetStatement>()
+                            .First(ss => ss.Value.EndsWith(CodeConstants.ScenePrimaryMethod.ToLower() + "\":"));
+                        var mainInteract = interaction[interaction.IndexOf(mainCall) + 1];
+                        if (prepend)
+                        {
+                            interaction.Insert(interaction.IndexOf(mainInteract),
+                                new CodeExpressionStatement(CodeGeneration_Navigation.GoToScene("global prepend")));
+                        }
 
-                    if (append)
-                    {
-                        interaction.Insert(interaction.IndexOf(mainInteract) + 1,
-                            new CodeExpressionStatement(CodeGeneration_Navigation.GoToScene("global append")));
+                        if (append)
+                        {
+                            interaction.Insert(interaction.IndexOf(mainInteract) + 1,
+                                new CodeExpressionStatement(CodeGeneration_Navigation.GoToScene("global append")));
+                        }
                     }
                 }
 
