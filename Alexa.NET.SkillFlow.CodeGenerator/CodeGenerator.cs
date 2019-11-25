@@ -119,21 +119,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             CodeStatementCollection statements = context.CodeScope.Statements();
 
-            if (instructions is If ifstmt)
+            switch (instructions)
             {
-                if (statements == null)
+                case If ifStmt:
                 {
-                    throw new InvalidSkillFlowException("Check to see what happens with if statmeents after hear");
+                    var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifStmt.Condition));
+                    statements.Add(codeIf);
+                    context.CodeScope.Push(codeIf);
+                    break;
                 }
-                var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
-                statements.Add(codeIf);
-                context.CodeScope.Push(codeIf);
-            }
-            else if (instructions is Hear hear)
-            {
-                CodeGeneration_Interaction.AddHearMarker(context, statements);
-
-                CodeGeneration_Interaction.AddIntent(context, hear.Phrases, statements);
+                case Hear hear when !context.CodeScope.OfType<Hear>().Any():
+                    CodeGeneration_Interaction.AddHearMarker(context, statements);
+                    CodeGeneration_Interaction.AddIntent(context, hear.Phrases, statements);
+                    break;
             }
 
 
@@ -189,11 +187,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(flag.Variable, true);
                     break;
                 case GoTo gto:
-                    statements.GoToScene(gto.SceneName);
+                    statements.Add(CodeGeneration_Navigation.GoToScene(gto.SceneName));
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case GoToAndReturn goToAndReturn:
-                    statements.GoToScene(goToAndReturn.SceneName);
+                    statements.Add(CodeGeneration_Navigation.GoToScene(goToAndReturn.SceneName));
                     break;
                 case Increase increase:
                     statements.Increase(increase.Variable, increase.Amount);

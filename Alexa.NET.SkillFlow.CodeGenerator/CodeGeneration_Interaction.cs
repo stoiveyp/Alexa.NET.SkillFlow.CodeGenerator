@@ -53,7 +53,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var nulls = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
 
-            var intentName = "Intent_" + context.Marker;
+            var intentName = context.Marker;
             if (nulls.Any())
             {
                 var intent = new IntentType

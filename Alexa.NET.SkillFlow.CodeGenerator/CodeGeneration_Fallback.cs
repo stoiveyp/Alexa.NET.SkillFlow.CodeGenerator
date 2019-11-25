@@ -39,7 +39,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 type.Members.Add(method);
                 statements = method.Statements;
 
-                statements.InvokeInteraction(CodeConstants.FallbackMarker);
+                statements.Add(CodeGeneration_Navigation.InvokeInteraction(CodeConstants.FallbackMarker));
                 statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
             }
 

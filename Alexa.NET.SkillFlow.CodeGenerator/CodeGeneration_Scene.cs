@@ -37,7 +37,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return mainClass;
         }
 
-        private static CodeTypeMember CreateMain()
+        private static CodeMemberMethod CreateMain()
         {
             var method = new CodeMemberMethod
             {
@@ -50,7 +50,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return method;
         }
 
-        private static CodeTypeMember CreateInteract(string className)
+        private static CodeMemberMethod CreateInteract(string className)
         {
             var method = new CodeMemberMethod
             {

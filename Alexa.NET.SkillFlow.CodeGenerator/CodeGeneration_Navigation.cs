@@ -19,25 +19,25 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodePrimitiveExpression(sceneName), runScene));
         }
 
-        public static void GoToScene(this CodeStatementCollection statements, string sceneName)
+        public static CodeMethodInvokeExpression GoToScene(string sceneName)
         {
-            statements.Add(new CodeMethodInvokeExpression(
+            return new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("await Navigation"),
                 CodeConstants.NavigationMethodName,
                 new CodePrimitiveExpression(sceneName),
                 new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
                 new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response")));
+                new CodeVariableReferenceExpression("response"));
         }
 
-        public static void InvokeInteraction(this CodeStatementCollection statements, string interactionName)
+        public static CodeMethodInvokeExpression InvokeInteraction(string interactionName)
         {
-            statements.Add(new CodeMethodInvokeExpression(
+            return new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("await Navigation"),
                 CodeConstants.NavigationMethodName,
                 new CodePrimitiveExpression(interactionName),
                 new CodeVariableReferenceExpression("request"),
-                new CodeVariableReferenceExpression("response")));
+                new CodeVariableReferenceExpression("response"));
         }
 
         public static CodeMethodInvokeExpression AddInteraction(string sceneName, string interactionName)
