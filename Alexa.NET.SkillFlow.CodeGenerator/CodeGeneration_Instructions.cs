@@ -7,8 +7,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static CodeMethodInvokeExpression SetVariable(string variableName, CodeExpression value, bool gameVariable)
         {
+            return SetVariable(new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
+                value);
+        }
+
+        public static CodeMethodInvokeExpression SetVariable(CodeExpression variableName, CodeExpression value)
+        {
             return new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
-                new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
+                variableName,
                 value);
         }
 

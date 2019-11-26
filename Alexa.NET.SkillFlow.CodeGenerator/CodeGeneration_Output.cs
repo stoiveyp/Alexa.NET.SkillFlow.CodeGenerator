@@ -34,18 +34,18 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
 
             type.Members.Add(CreateGenerateMethod());
-            type.Members.Add(SetTemplate());
-            type.Members.Add(SetDataProperty());
-            //type.Members.Add(CreateSetAPL());
+            type.Members.Add(CreateSetTemplate());
+            type.Members.Add(CreateSetDataProperty());
+            type.Members.Add(CreateAddSpeech());
 
             return type;
         }
 
-        private static CodeMemberMethod SetDataProperty()
+        private static CodeMemberMethod CreateAddSpeech()
         {
             var method = new CodeMemberMethod
             {
-                Name = "SetTemplate",
+                Name = "AddSpeech",
                 Attributes = MemberAttributes.Public | MemberAttributes.Static
             };
 
@@ -54,14 +54,35 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     CodeConstants.RequestVariableName));
             method.Parameters.Add(new CodeParameterDeclarationExpression(
-                new CodeTypeReference(typeof(string)), "templateName"));
-
-            method.Statements.Add(CodeGeneration_Instructions.SetVariable("scene_template", new CodeVariableReferenceExpression("templateName"), false));
+                new CodeTypeReference(typeof(string)), "speech"));
 
             return method;
         }
 
-        private static CodeMemberMethod SetTemplate()
+        private static CodeMemberMethod CreateSetDataProperty()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "SetDataProperty",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                    CodeConstants.RequestVariableName));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(
+                new CodeTypeReference(typeof(string)), "property"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(
+                new CodeTypeReference(typeof(string)), "value"));
+
+            method.Statements.Add(CodeGeneration_Instructions.SetVariable(
+                new CodeBinaryOperatorExpression(new CodePrimitiveExpression("scene_"),CodeBinaryOperatorType.Add,new CodeVariableReferenceExpression("property")), new CodeVariableReferenceExpression("value")));
+
+            return method;
+        }
+
+        private static CodeMemberMethod CreateSetTemplate()
         {
             var method = new CodeMemberMethod
             {
