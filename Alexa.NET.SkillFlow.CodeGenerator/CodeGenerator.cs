@@ -57,7 +57,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     CodeGeneration_Text.GenerateReprompt(generate, text, context);
                     break;
                 case "recap":
-                    CodeGeneration_Text.GenerateRecap(context.CodeScope.Reverse().First(o => o is CodeTypeDeclaration) as CodeTypeDeclaration, text, context);
+                    CodeGeneration_Text.GenerateRecap(generate, text, context);
                     break;
             }
             return base.Begin(text, context);
@@ -67,45 +67,58 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
 
-            var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
+            //var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
 
-            context.CodeScope.Push(aplRef);
+            //context.CodeScope.Push(aplRef);
             return base.Begin(story, context);
         }
 
         protected override Task End(Visual story, CodeGeneratorContext context)
         {
-            context.CodeScope.Pop();
+            //context.CodeScope.Pop();
             return base.End(story, context);
         }
 
         protected override Task Render(VisualProperty property, CodeGeneratorContext context)
         {
-            var render = context.CodeScope.Pop() as CodeVariableReferenceExpression;
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
             switch (property.Key)
             {
                 case "template":
-                    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context, property.Value);
-                    gen.Statements.Add(new CodeAssignStatement(
-                        new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
-                        layoutCall));
+                    var method = new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "SetTemplate",
+                        new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                        new CodePrimitiveExpression(property.Value));
+                    gen.Statements.Add(method);
+                    //    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context, property.Value);
+                    //    gen.Statements.Add(new CodeAssignStatement(
+                    //        new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
+                    //        layoutCall));
                     break;
                 case "background":
-                    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
-                    break;
                 case "title":
-                    var titleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(titleDs, "title", property.Value));
-                    break;
                 case "subtitle":
-                    var subtitleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(subtitleDs, "subtitle", property.Value));
+                    var propertyMethod = new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "SetDataProperty",
+                        new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                        new CodePrimitiveExpression(property.Key.ToLower()),
+                        new CodePrimitiveExpression(property.Value));
+                    gen.Statements.Add(propertyMethod);
+                    //    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                    //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
                     break;
+                //case "title":
+                //    var titleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(titleDs, "title", property.Value));
+                //    break;
+                //case "subtitle":
+                //    var subtitleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(subtitleDs, "subtitle", property.Value));
+                //    break;
 
             }
-            context.CodeScope.Push(render);
             return Noop(context);
         }
 

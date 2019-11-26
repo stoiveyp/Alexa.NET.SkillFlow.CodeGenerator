@@ -34,10 +34,51 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
 
             type.Members.Add(CreateGenerateMethod());
-            //type.Members.Add(SetSpeech());
+            type.Members.Add(SetTemplate());
+            type.Members.Add(SetDataProperty());
             //type.Members.Add(CreateSetAPL());
 
             return type;
+        }
+
+        private static CodeMemberMethod SetDataProperty()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "SetTemplate",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                    CodeConstants.RequestVariableName));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(
+                new CodeTypeReference(typeof(string)), "templateName"));
+
+            method.Statements.Add(CodeGeneration_Instructions.SetVariable("scene_template", new CodeVariableReferenceExpression("templateName"), false));
+
+            return method;
+        }
+
+        private static CodeMemberMethod SetTemplate()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "SetTemplate",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                    CodeConstants.RequestVariableName));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(
+                new CodeTypeReference(typeof(string)), "templateName"));
+
+            method.Statements.Add(CodeGeneration_Instructions.SetVariable("scene_template",new CodeVariableReferenceExpression("templateName"), false));
+
+            return method;
         }
 
         private static CodeMemberMethod CreateGenerateMethod()

@@ -22,16 +22,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return candidate?.Statements;
         }
 
-        public static CodeMethodInvokeExpression RunMarker(this CodeGeneratorContext context, bool wait = true)
-        {
-            return new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("await Navigation"),
-                CodeConstants.NavigationMethodName,
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
-                new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName)
-            );
-        }
-
         public static void AddBeforeReturn(this CodeStatementCollection statements, params CodeObject[] codes)
         {
             var last = statements[statements.Count - 1];

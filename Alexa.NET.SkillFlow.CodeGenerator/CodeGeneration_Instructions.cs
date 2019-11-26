@@ -5,13 +5,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Instructions
     {
+        public static CodeMethodInvokeExpression SetVariable(string variableName, CodeExpression value, bool gameVariable)
+        {
+            return new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
+                new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
+                value);
+        }
+
         public static void SetVariable(this CodeStatementCollection statements, string variableName, object value, bool gameVariable = true)
         {
-            var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
-                new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
-                new CodePrimitiveExpression(value));
-
-            statements.Add(setVariable);
+            statements.Add(SetVariable(variableName, new CodePrimitiveExpression(value), gameVariable));
         }
 
         public static void Decrease(this CodeStatementCollection statements, string variableName, int amount)
