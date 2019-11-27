@@ -55,12 +55,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     CodeConstants.RequestVariableName));
 
+            var items = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), "Items");
+            var speech = new CodePrimitiveExpression("speech");
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(
+                new CodeTypeReference("var"),
+                "speech",
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Output"),"CreateOutput", new CodeIndexerExpression(items, speech))
+            ));
+
             var checkForCandidates = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
                     "HasCandidates", new CodeVariableReferenceExpression(CodeConstants.RequestVariableName)));
 
-            checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"),"Ask")));
+            checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"),"Ask",new CodeVariableReferenceExpression("speech"))));
             checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell")));
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell", new CodeVariableReferenceExpression("speech"))));
 
             method.Statements.Add(checkForCandidates);
 
