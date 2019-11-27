@@ -38,11 +38,47 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateGenerateMethod());
             type.Members.Add(CreateGenerateSpeech());
             type.Members.Add(CreateOutputSpeech());
+            type.Members.Add(CreateAttachApl());
 
             return type;
         }
 
-        private static CodeTypeReferenceExpression _refOutput = new CodeTypeReferenceExpression("Output");
+        private static CodeMemberMethod CreateAttachApl()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "AttachApl",
+                Attributes = MemberAttributes.Static
+            };
+
+            method.AddRequestParam();
+            method.AddResponseParam();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "templateName",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string>",
+                    new CodePrimitiveExpression("scene_template"))));
+
+            var templateName = new CodeVariableReferenceExpression("templateName");
+
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(templateName, CodeBinaryOperatorType.ValueEquality,new CodePrimitiveExpression(null)),
+                new CodeMethodReturnStatement()));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "directive",
+                new CodeObjectCreateExpression(new CodeTypeReference("RenderDocumentDirective"))));
+
+            //TODO: Add these statements here
+            //directive.Document = new APLDocument();
+            //directive.Document.MainTemplate = APLHelper.GetLayout(template).AsMain();
+
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(
+                    new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName),"Response"), "Directives"), "Add",
+                new CodeVariableReferenceExpression("directive")));
+            return method;
+        }
+
+        private static readonly CodeTypeReferenceExpression _refOutput = new CodeTypeReferenceExpression("Output");
 
         private static CodeMemberMethod CreateGenerateMethod()
         {
@@ -95,7 +131,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodePrimitiveExpression(null)),
                 new CodeMethodReturnStatement(new CodePrimitiveExpression(null))));
 
-            method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "output",
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "output",
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
                     new CodeVariableReferenceExpression("speech"))));
 
@@ -123,7 +159,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var method = new CodeMemberMethod
             {
                 Name = "GenerateSpeech",
-                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                Attributes = MemberAttributes.Static,
                 ReturnType = new CodeTypeReference("SkillResponse")
             };
 
@@ -146,7 +182,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             checkForCandidates.TrueStatements.Add(new CodeVariableDeclarationStatement(
                 new CodeTypeReference("var"),
-                "recap",
+                "reprompt",
                 new CodeMethodInvokeExpression(_refOutput,"CreateOutput",
                     new CodeMethodInvokeExpression(
                         new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),"GetValue<string>",
@@ -191,7 +227,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     ))
                 ));
 
-            method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "list",
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "list",
                 new CodeCastExpression(new CodeTypeReference("List<string>"), new CodeIndexerExpression(items, speech))));
 
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",

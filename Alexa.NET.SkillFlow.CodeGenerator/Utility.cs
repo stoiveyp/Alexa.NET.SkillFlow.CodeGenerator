@@ -167,7 +167,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeTypeReferenceExpression("Randomiser"),
                 "PickRandom",
                 varNames.Select(v => new CodeVariableReferenceExpression(v)).Cast<CodeExpression>().ToArray());
-            var randomVar = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), text.TextType, generatorCall);
+            var randomVar = new CodeVariableDeclarationStatement(CodeConstants.Var, text.TextType, generatorCall);
             method.Statements.Add(randomVar);
             return new CodeVariableReferenceExpression(text.TextType);
         }

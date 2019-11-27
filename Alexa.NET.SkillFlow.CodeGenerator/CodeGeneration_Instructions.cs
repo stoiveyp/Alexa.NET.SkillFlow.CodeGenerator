@@ -132,7 +132,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
 
             method.Statements.Add(
-                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                new CodeVariableDeclarationStatement(CodeConstants.Var, "target",
                     new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
                     , new CodeVariableReferenceExpression("name"))));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
@@ -157,7 +157,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
 
             method.Statements.Add(
-                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                new CodeVariableDeclarationStatement(CodeConstants.Var, "target",
                     new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
                         , new CodeVariableReferenceExpression("name"))));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
