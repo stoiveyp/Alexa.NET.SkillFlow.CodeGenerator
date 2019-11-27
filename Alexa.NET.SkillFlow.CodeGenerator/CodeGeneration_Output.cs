@@ -39,8 +39,33 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateGenerateSpeech());
             type.Members.Add(CreateOutputSpeech());
             type.Members.Add(CreateAttachApl());
+            type.Members.Add(CreateSetVisualProperty());
 
             return type;
+        }
+
+        private static CodeMemberMethod CreateSetVisualProperty()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "SetVisualProperty",
+                Attributes = MemberAttributes.Static
+            };
+
+            method.AddRequestParam();
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(new CodeTypeReference("KeyValueDataSource"), "ds"));
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(new CodeTypeReference(typeof(string)), "name"));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string), "property",
+                new CodeMethodInvokeExpression(CodeConstants.RequestVariableRef, "GetValue<string>",
+                    new CodeVariableReferenceExpression("name"))));
+
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)),"IsNullOrWhiteSpace",new CodeVariableReferenceExpression("property")),
+                new CodeMethodReturnStatement()));
+            return method;
         }
 
         private static CodeMemberMethod CreateAttachApl()
@@ -67,9 +92,40 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "directive",
                 new CodeObjectCreateExpression(new CodeTypeReference("RenderDocumentDirective"))));
 
+            var aplDocProperty = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("directive"), "Document");
             //TODO: Add these statements here
-            //directive.Document = new APLDocument();
-            //directive.Document.MainTemplate = APLHelper.GetLayout(template).AsMain();
+            method.Statements.Add(new CodeAssignStatement(
+                aplDocProperty,
+                new CodeObjectCreateExpression(new CodeTypeReference("APLDocument"))));
+
+            method.Statements.Add(new CodeAssignStatement(
+                    new CodePropertyReferenceExpression(aplDocProperty, "MainTemplate"),
+                    new CodeMethodInvokeExpression(
+                        new CodeMethodInvokeExpression(
+                            new CodeTypeReferenceExpression("APLHelper"),
+                            "GetLayout",
+                            new CodeVariableReferenceExpression("templateName")),"AsMain")
+                ));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "ds",
+                new CodeObjectCreateExpression(new CodeTypeReference("KeyValueDataSource"))));
+
+            var dsVar = new CodeVariableReferenceExpression("ds");
+            var requestVar = new CodeVariableReferenceExpression(CodeConstants.RequestVariableName);
+            method.Statements.Add(new CodeMethodInvokeExpression(_refOutput, "SetVisualProperty",
+                CodeConstants.RequestVariableRef, dsVar,new CodePrimitiveExpression("scene_background")));
+            method.Statements.Add(new CodeMethodInvokeExpression(_refOutput, "SetVisualProperty",
+                CodeConstants.RequestVariableRef, dsVar, new CodePrimitiveExpression("scene_title")));
+            method.Statements.Add(new CodeMethodInvokeExpression(_refOutput, "SetVisualProperty",
+                CodeConstants.RequestVariableRef, dsVar, new CodePrimitiveExpression("scene_subtitle")));
+
+            //SetVisualProperty(request, ds, "scene_background");
+            //SetVisualProperty(request, ds, "scene_title");
+            //SetVisualProperty(request, ds, "scene_subtitle");
+
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("directive"), "DataSources"),
+                "Add", new CodePrimitiveExpression("visualProperty"), new CodeVariableReferenceExpression("ds")));
 
             method.Statements.Add(new CodeMethodInvokeExpression(
                 new CodePropertyReferenceExpression(
@@ -286,9 +342,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             ns.Imports.Add(new CodeNamespaceImport("System"));
             ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL.DataSources"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response.APL"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response.Ssml"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
