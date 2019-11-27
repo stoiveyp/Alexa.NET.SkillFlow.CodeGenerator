@@ -65,6 +65,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeConditionStatement(
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)),"IsNullOrWhiteSpace",new CodeVariableReferenceExpression("property")),
                 new CodeMethodReturnStatement()));
+
+            //ds.Properties.Add(name.Substring(6),property);
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("ds"),"Properties")
+                ,"Add",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("name"),"Substring",new CodePrimitiveExpression(6)),new CodeVariableReferenceExpression("property")));
             return method;
         }
 
