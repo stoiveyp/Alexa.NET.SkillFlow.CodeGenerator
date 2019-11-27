@@ -28,30 +28,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             CodeGeneration_Randomiser.Ensure(context);
 
-            var method = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("Output"),
-                "AddReprompt",
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
-            foreach (var s in text.Content)
-            {
-                method.Parameters.Add(new CodePrimitiveExpression(s));
-            }
-            generate.Statements.Add(method);
+            generate.Statements.Add(new CodeMethodInvokeExpression(
+                CodeConstants.RequestVariableRef,
+                "SetValue",
+                new CodePrimitiveExpression("scene_reprompt"),
+                CodeConstants.GeneratePickFrom(text.Content)));
         }
 
         public static void GenerateRecap(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
             CodeGeneration_Randomiser.Ensure(context);
 
-            var method = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("Output"),
-                "AddRecap",
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
-            foreach (var s in text.Content)
-            {
-                method.Parameters.Add(new CodePrimitiveExpression(s));
-            }
-            generate.Statements.Add(method);
+            generate.Statements.Add(new CodeMethodInvokeExpression(
+                CodeConstants.RequestVariableRef,
+                "SetValue",
+                new CodePrimitiveExpression("scene_recap"),
+                CodeConstants.GeneratePickFrom(text.Content)));
         }
     }
 }

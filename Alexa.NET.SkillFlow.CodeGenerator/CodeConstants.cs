@@ -1,5 +1,7 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -22,5 +24,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public const string ScenePrimaryMethod = "Main";
         public const string NavigationMethodName = "Interact";
         public const string OutputGenerateMethod = "Generate";
+
+        public static readonly CodeVariableReferenceExpression RequestVariableRef =
+            new CodeVariableReferenceExpression(RequestVariableName);
+
+        public static CodeExpression GeneratePickFrom(IEnumerable<string> content)
+        {
+            if (content.Count() == 1)
+            {
+                return new CodePrimitiveExpression(content.First());
+            }
+            return new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Randomiser"),"PickRandom",content.Select(s => new CodePrimitiveExpression(s)).ToArray());
+        }
     }
 }

@@ -43,7 +43,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var methodInvoke = new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("Navigation"),
                 CodeConstants.AddInteractionMethodName,
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                CodeConstants.RequestVariableRef,
                 new CodePrimitiveExpression(sceneName),
                 new CodePrimitiveExpression(interactionName));
 
@@ -179,7 +179,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             };
             method.AddRequestParam();
             method.Statements.Add(new CodeMethodInvokeExpression(
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                CodeConstants.RequestVariableRef,
                 "Clear",
                 new CodePrimitiveExpression(CandidateVariableName)));
             return method;
@@ -208,7 +208,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 "Interact",
                 new CodePrimitiveExpression("start"),
                 new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
+                CodeConstants.RequestVariableRef)));
 
             startCheck.FalseStatements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "lastInteraction",
                 new CodeMethodInvokeExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"), "Last"),"Split",new CodePrimitiveExpression('|'))));
@@ -217,7 +217,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 "Interact",
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"),new CodePrimitiveExpression(0)),
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"), new CodePrimitiveExpression(1)),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
+                CodeConstants.RequestVariableRef)));
 
             method.Statements.Add(startCheck);
             return method;
@@ -297,7 +297,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CodeConstants.CurrentSceneMethodName, new CodeVariableReferenceExpression("request"))), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
+                CodeConstants.RequestVariableRef)));
 
             return gtMethod;
         }
@@ -319,7 +319,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeVariableReferenceExpression("sceneName")), "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))));
+                CodeConstants.RequestVariableRef)));
 
             return gtMethod;
         }
@@ -345,7 +345,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             return new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
                 CodeConstants.EnableCandidateMethodName,
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                CodeConstants.RequestVariableRef,
                 new CodePrimitiveExpression(interactionName));
         }
     }

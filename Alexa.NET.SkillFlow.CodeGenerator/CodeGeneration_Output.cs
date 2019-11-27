@@ -37,8 +37,85 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateAddSpeech());
             type.Members.Add(CreateGenerateMethod());
             type.Members.Add(CreateGenerateSpeech());
+            type.Members.Add(CreateOutputSpeech());
 
             return type;
+        }
+
+        private static CodeTypeReferenceExpression _refOutput = new CodeTypeReferenceExpression("Output");
+
+        private static CodeMemberMethod CreateGenerateMethod()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = CodeConstants.OutputGenerateMethod,
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference("async Task<SkillResponse>")
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                    CodeConstants.RequestVariableName));
+
+            method.Statements.Add(
+                new CodeVariableDeclarationStatement(
+                    new CodeTypeReference("var"),
+                    CodeConstants.ResponseVariableName,
+                    new CodeMethodInvokeExpression(_refOutput, "GenerateSpeech", new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))
+                )
+            );
+
+            method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("request"),"SkillRequest"), "APLSupported"),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(
+                    _refOutput,
+                    "AttachApl",
+                    new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                    new CodeVariableReferenceExpression(CodeConstants.ResponseVariableName)))));
+
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
+
+            return method;
+        }
+
+        private static CodeTypeMember CreateOutputSpeech()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "CreateOutput",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference("IOutputSpeech")
+            };
+
+            var param = new CodeParameterDeclarationExpression(typeof(string[]),"speech");
+            param.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(System.ParamArrayAttribute))));
+            method.Parameters.Add(param);
+
+            method.Statements.Add(new CodeConditionStatement(new CodeBinaryOperatorExpression(
+                new CodeVariableReferenceExpression("speech"), CodeBinaryOperatorType.ValueEquality,
+                new CodePrimitiveExpression(null)),
+                new CodeMethodReturnStatement(new CodePrimitiveExpression(null))));
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "output",
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
+                    new CodeVariableReferenceExpression("speech"))));
+
+            var localOutput = new CodeVariableReferenceExpression("output");
+            var ssmlCheck = new CodeConditionStatement(new CodeMethodInvokeExpression(
+                localOutput, "Contains", new CodePrimitiveExpression("<")));
+
+            ssmlCheck.TrueStatements.Add(new CodeAssignStatement(localOutput, new CodeMethodInvokeExpression(new CodeObjectCreateExpression(new CodeTypeReference("Speech"),new CodeObjectCreateExpression(new CodeTypeReference("PlainText"),new CodeVariableReferenceExpression("output"))),"ToXml") ));
+
+            ssmlCheck.TrueStatements.Add(new CodeMethodReturnStatement(
+                new CodeObjectCreateExpression(new CodeTypeReference("SsmlOutputSpeech"),
+                    localOutput)));
+
+            ssmlCheck.FalseStatements.Add(new CodeMethodReturnStatement(
+                new CodeObjectCreateExpression(new CodeTypeReference("PlainTextOutputSpeech"),
+                    localOutput)));
+
+            method.Statements.Add(ssmlCheck);
+
+            return method;
         }
 
         private static CodeMemberMethod CreateGenerateSpeech()
@@ -61,14 +138,21 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeVariableDeclarationStatement(
                 new CodeTypeReference("var"),
                 "speech",
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Output"),"CreateOutput", new CodeIndexerExpression(items, speech))
+                new CodeMethodInvokeExpression(_refOutput, "CreateOutput", new CodeMethodInvokeExpression(new CodeCastExpression("List<string>", new CodeIndexerExpression(items, speech)), "ToArray"))
             ));
 
             var checkForCandidates = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
                     "HasCandidates", new CodeVariableReferenceExpression(CodeConstants.RequestVariableName)));
 
+            checkForCandidates.TrueStatements.Add(new CodeVariableDeclarationStatement(
+                new CodeTypeReference("var"),
+                "recap",
+                new CodeMethodInvokeExpression(_refOutput,"CreateOutput",
+                    new CodeMethodInvokeExpression(
+                        new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),"GetValue<string>",
+                        new CodePrimitiveExpression("scene_reprompt")))));
             checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"),"Ask",new CodeVariableReferenceExpression("speech"))));
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("reprompt == null ? null : new Reprompt{OutputSpeech=reprompt}"))));
             checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell", new CodeVariableReferenceExpression("speech"))));
 
@@ -96,7 +180,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var speech = new CodePrimitiveExpression("speech");
             method.Statements.Add(new CodeConditionStatement(
                 new CodeBinaryOperatorExpression(new CodeMethodInvokeExpression(
-                    items,"ContainsKey",speech),
+                    items, "ContainsKey", speech),
                 CodeBinaryOperatorType.ValueEquality,
                 new CodePrimitiveExpression(false)),
                 new CodeExpressionStatement(new CodeMethodInvokeExpression(
@@ -134,7 +218,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeTypeReference(typeof(string)), "value"));
 
             method.Statements.Add(CodeGeneration_Instructions.SetVariable(
-                new CodeBinaryOperatorExpression(new CodePrimitiveExpression("scene_"),CodeBinaryOperatorType.Add,new CodeVariableReferenceExpression("property")), new CodeVariableReferenceExpression("value")));
+                new CodeBinaryOperatorExpression(new CodePrimitiveExpression("scene_"), CodeBinaryOperatorType.Add, new CodeVariableReferenceExpression("property")), new CodeVariableReferenceExpression("value")));
 
             return method;
         }
@@ -154,35 +238,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(
                 new CodeTypeReference(typeof(string)), "templateName"));
 
-            method.Statements.Add(CodeGeneration_Instructions.SetVariable("scene_template",new CodeVariableReferenceExpression("templateName"), false));
-
-            return method;
-        }
-
-        private static CodeMemberMethod CreateGenerateMethod()
-        {
-            var method = new CodeMemberMethod
-            {
-                Name = CodeConstants.OutputGenerateMethod,
-                Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference("async Task<SkillResponse>")
-            };
-
-            method.Parameters.Add(
-                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
-                    CodeConstants.RequestVariableName));
-
-            method.Statements.Add(
-                new CodeVariableDeclarationStatement(
-                    new CodeTypeReference("var"),
-                    CodeConstants.ResponseVariableName,
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Output"),"GenerateSpeech",new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))
-                )
-            );
-
-            
-
-            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
+            method.Statements.Add(CodeGeneration_Instructions.SetVariable("scene_template", new CodeVariableReferenceExpression("templateName"), false));
 
             return method;
         }
@@ -192,11 +248,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var code = new CodeCompileUnit();
             var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("System"));
+            ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.APL"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response.Ssml"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
-            ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             ns.Imports.Add(new CodeNamespaceImport("System.Threading.Tasks"));
             code.Namespaces.Add(ns);
 

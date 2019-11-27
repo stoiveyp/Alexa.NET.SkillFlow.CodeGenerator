@@ -14,7 +14,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new XElement("Project",
                     new XAttribute("Sdk", "Microsoft.NET.Sdk"),
                     new XElement("PropertyGroup",
-                        new XElement("TargetFramework", new XText("netcoreapp2.1"))),
+                        new XElement("TargetFramework", new XText("netcoreapp2.1")),
+                        new XElement("GenerateRuntimeConfigurationFiles",new XText("true")),
+                        new XElement("AWSProjectType", new XText("Lambda"))
+                    ),
                     new XElement("ItemGroup",
                         new XElement("PackageReference",
                             new XAttribute("Include", "Alexa.NET"),
