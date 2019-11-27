@@ -16,7 +16,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
 
             var context = await GenerateTestStory(story);
             var className = context.GetClass("Scene_Test");
-            var generate = className.GenerateMethod();
+            var generate = className.MainMethod();
             var setSayText = generate.Statements.OfType<CodeVariableDeclarationStatement>().LastOrDefault();
 
             Assert.NotNull(setSayText);

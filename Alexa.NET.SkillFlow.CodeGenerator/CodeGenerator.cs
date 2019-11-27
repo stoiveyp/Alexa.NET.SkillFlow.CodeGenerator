@@ -24,12 +24,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var sceneClass = code.FirstType();
             context.SceneFiles.Add(CodeGeneration_Scene.SceneClassName(scene.Name), code);
             context.CodeScope.Push(sceneClass);
-            context.CodeScope.Push(sceneClass.GetGenerateMethod());
+            context.CodeScope.Push(sceneClass.GetMainMethod());
 
             CodeGeneration_Navigation.RegisterScene(context, scene.Name,
-                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), "Generate"));
+                new CodeMethodReferenceExpression(new CodeTypeReferenceExpression(sceneClass.Name), CodeConstants.SceneInteractionMethod));
 
-            if (scene.Name.Equals("start", StringComparison.OrdinalIgnoreCase))
+            if (scene.Name.Equals(SpecialScenes.Start, StringComparison.OrdinalIgnoreCase))
             {
                 context.CreateLaunchRequestHandler();
             }
@@ -57,7 +57,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     CodeGeneration_Text.GenerateReprompt(generate, text, context);
                     break;
                 case "recap":
-                    CodeGeneration_Text.GenerateRecap(context.CodeScope.Reverse().First(o => o is CodeTypeDeclaration) as CodeTypeDeclaration, text, context);
+                    CodeGeneration_Text.GenerateRecap(generate, text, context);
                     break;
             }
             return base.Begin(text, context);
@@ -67,52 +67,64 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
 
-            var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
+            //var aplRef = CodeGeneration_Visuals.AddRenderDocument(gen, "apl");
 
-            context.CodeScope.Push(aplRef);
+            //context.CodeScope.Push(aplRef);
             return base.Begin(story, context);
         }
 
         protected override Task End(Visual story, CodeGeneratorContext context)
         {
-            context.CodeScope.Pop();
+            //context.CodeScope.Pop();
             return base.End(story, context);
         }
 
         protected override Task Render(VisualProperty property, CodeGeneratorContext context)
         {
-            var render = context.CodeScope.Pop() as CodeVariableReferenceExpression;
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
             switch (property.Key)
             {
                 case "template":
-                    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context, property.Value);
-                    gen.Statements.Add(new CodeAssignStatement(
-                        new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
-                        layoutCall));
+                    var method = new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "SetTemplate",
+                        new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                        new CodePrimitiveExpression(property.Value));
+                    gen.Statements.Add(method);
+                    //    var layoutCall = CodeGeneration_Visuals.GenerateAplCall(context, property.Value);
+                    //    gen.Statements.Add(new CodeAssignStatement(
+                    //        new CodePropertyReferenceExpression(render, "Document.MainTemplate"),
+                    //        layoutCall));
                     break;
                 case "background":
-                    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
-                    break;
                 case "title":
-                    var titleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(titleDs, "title", property.Value));
-                    break;
                 case "subtitle":
-                    var subtitleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
-                    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(subtitleDs, "subtitle", property.Value));
+                    var propertyMethod = new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "SetDataProperty",
+                        new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                        new CodePrimitiveExpression(property.Key.ToLower()),
+                        new CodePrimitiveExpression(property.Value));
+                    gen.Statements.Add(propertyMethod);
+                    //    var bgDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                    //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(bgDs, "background", property.Value));
                     break;
+                //case "title":
+                //    var titleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(titleDs, "title", property.Value));
+                //    break;
+                //case "subtitle":
+                //    var subtitleDs = CodeGeneration_Visuals.EnsureDataSource(gen, "apl");
+                //    gen.Statements.Add(CodeGeneration_Visuals.AddDataSourceProperty(subtitleDs, "subtitle", property.Value));
+                //    break;
 
             }
-            context.CodeScope.Push(render);
             return Noop(context);
         }
 
         protected override Task Begin(SceneInstructions instructions, CodeGeneratorContext context)
         {
             var gen = (CodeMemberMethod)context.CodeScope.Peek();
-            context.SetMarker(context.CodeScope.Statements(), 1);
             return base.Begin(instructions, context);
         }
 
@@ -120,23 +132,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             CodeStatementCollection statements = context.CodeScope.Statements();
 
-            if (instructions is If ifstmt)
+            switch (instructions)
             {
-                if (statements == null)
+                case If ifStmt:
                 {
-                    throw new InvalidSkillFlowException("Check to see what happens with if statmeents after hear");
+                    var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifStmt.Condition));
+                    statements.Add(codeIf);
+                    context.CodeScope.Push(codeIf);
+                    break;
                 }
-                var codeIf = new CodeConditionStatement(CodeGeneration_Condition.Generate(ifstmt.Condition));
-                statements.Add(codeIf);
-                context.CodeScope.Push(codeIf);
-                context.SetMarker(statements);
-            }
-            else if (instructions is Hear hear)
-            {
-                CodeGeneration_Interaction.AddHearMarker(context);
-
-
-                CodeGeneration_Interaction.AddIntent(context, hear.Phrases);
+                case Hear hear when !context.CodeScope.OfType<Hear>().Any():
+                    CodeGeneration_Interaction.AddHearMarker(context, statements);
+                    CodeGeneration_Interaction.AddIntent(context, hear.Phrases, statements);
+                    break;
             }
 
 
@@ -152,7 +160,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             if (context.CodeScope.Peek() is CodeTypeDeclaration typeDeclaration)
             {
-                context.CodeScope.Push(typeDeclaration.GetGenerateMethod());
+                context.CodeScope.Push(typeDeclaration.GetMainMethod());
             }
 
             return base.End(instructions, context);
@@ -167,7 +175,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements = member.Statements;
                     break;
                 case CodeTypeDeclaration codeType:
-                    statements = codeType.GetGenerateMethod().Statements;
+                    statements = codeType.GetMainMethod().Statements;
                     break;
                 case CodeConditionStatement stmt:
                     statements = stmt.TrueStatements;
@@ -192,11 +200,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.SetVariable(flag.Variable, true);
                     break;
                 case GoTo gto:
-                    statements.NavigateTo(gto.SceneName);
+                    statements.Add(CodeGeneration_Navigation.GoToScene(gto.SceneName));
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case GoToAndReturn goToAndReturn:
-                    statements.NavigateTo(goToAndReturn.SceneName);
+                    statements.Add(CodeGeneration_Navigation.GoToScene(goToAndReturn.SceneName));
                     break;
                 case Increase increase:
                     statements.Increase(increase.Variable, increase.Amount);

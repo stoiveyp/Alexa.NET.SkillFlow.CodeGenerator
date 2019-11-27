@@ -1,6 +1,5 @@
 ﻿using Alexa.NET.SkillFlow.CodeGenerator;
 using CommandLine;
-using CommandLine.Text;
 
 namespace Alexa.NET.SkillFlow.Tool
 {

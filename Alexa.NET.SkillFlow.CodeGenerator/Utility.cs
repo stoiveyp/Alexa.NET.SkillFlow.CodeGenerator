@@ -14,11 +14,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return unit.Namespaces[0].Types[0];
         }
 
-        public static CodeStatementCollection HandleStatements(this CodeTypeDeclaration type)
-        {
-            return MethodStatements(type, "Handle");
-        }
-
         public static CodeStatementCollection MethodStatements(this CodeTypeDeclaration type, string methodName, bool generate = false)
         {
             var candidate = type.Members.OfType<CodeMemberMethod>()
@@ -27,14 +22,23 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return candidate?.Statements;
         }
 
-        public static CodeMethodInvokeExpression RunMarker(this CodeGeneratorContext context, bool wait = true)
+        public static void AddBeforeReturn(this CodeStatementCollection statements, params CodeObject[] codes)
         {
-            return new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression(
-                    (wait ? "await " : string.Empty) + ((CodeTypeDeclaration) context.CodeScope.Skip(1).First()).Name),
-                ((CodeMemberMethod) context.CodeScope.First()).Name,
-                new CodeVariableReferenceExpression("information"),
-                new CodeVariableReferenceExpression("response"));
+            var last = statements[statements.Count - 1];
+            statements.Remove(last);
+            foreach (var code in codes)
+            {
+                if (code is CodeStatement stmt)
+                {
+                    statements.Add(stmt);
+                }
+                else if (code is CodeExpression expr)
+                {
+                    statements.Add(expr);
+                }
+            }
+
+            statements.Add(last);
         }
 
         public static CodeStatementCollection Statements(this Stack<CodeObject> stack)
@@ -77,21 +81,62 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return (array ?? new T[] { }).Concat(toAdd).ToArray();
         }
 
-        public static void AddResponseParams(this CodeMemberMethod method, bool includeResponseVariable = false)
+        public static void AddInteractionParams(this CodeMemberMethod method)
         {
-            method.Parameters.Add(
-                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
-            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "response"));
-            if (includeResponseVariable)
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), CodeConstants.InteractionParameterName));
+        }
+
+        public static CodeMethodInvokeExpression AddFlowParameters(this CodeMethodInvokeExpression method)
+        {
+            method.Parameters.Add(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
+            return method;
+        }
+
+        public static CodeSnippetStatement AddInteraction(this CodeStatementCollection statements, string interactionName,
+            CodeMethodInvokeExpression method, bool whenCandidate = false)
+        {
+            if (whenCandidate)
             {
-                var assignment = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "responseBody", new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"), "Response"));
-                method.Statements.Add(assignment);
+                var snippet = new CodeSnippetStatement(
+                    $"\t\t\tcase \"{interactionName}\" when Navigation.IsCandidate(request,\"{interactionName}\"):");
+                statements.AddBeforeReturn(snippet
+                    ,
+                    method,
+                    new CodeSnippetExpression("\t\t\tbreak")
+                );
+                return snippet;
+            }
+            else
+            {
+                var snippet = new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":");
+                statements.AddBeforeReturn(
+                    snippet,
+                    method,
+                    new CodeSnippetExpression("\t\t\tbreak")
+                );
+                return snippet;
             }
         }
 
-        public static CodeMemberMethod GetGenerateMethod(this CodeTypeDeclaration currentClass)
+        public static void AddRequestParam(this CodeMemberMethod method)
         {
-            return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == "Generate");
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<APLSkillRequest>"), "request"));
+        }
+
+        public static void AddResponseParam(this CodeMemberMethod method)
+        {
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(SkillResponse).AsSimpleName(), "response"));
+        }
+
+        public static void AddFlowParams(this CodeMemberMethod method)
+        {
+            AddRequestParam(method);
+        }
+
+        public static CodeMemberMethod GetMainMethod(this CodeTypeDeclaration currentClass)
+        {
+            return currentClass.Members.OfType<CodeMemberMethod>().First(cmm => cmm.Name == CodeConstants.ScenePrimaryMethod);
         }
 
         public static CodeTypeReference AsSimpleName(this Type type)
@@ -122,7 +167,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeTypeReferenceExpression("Randomiser"),
                 "PickRandom",
                 varNames.Select(v => new CodeVariableReferenceExpression(v)).Cast<CodeExpression>().ToArray());
-            var randomVar = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), text.TextType, generatorCall);
+            var randomVar = new CodeVariableDeclarationStatement(CodeConstants.Var, text.TextType, generatorCall);
             method.Statements.Add(randomVar);
             return new CodeVariableReferenceExpression(text.TextType);
         }

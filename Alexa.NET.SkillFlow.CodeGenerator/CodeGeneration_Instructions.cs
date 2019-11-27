@@ -5,19 +5,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Instructions
     {
-        public static void SetMarker(this CodeGeneratorContext context, CodeStatementCollection statements, int skip = 0)
+        public static CodeMethodInvokeExpression SetVariable(string variableName, CodeExpression value, bool gameVariable)
         {
-            EnsureStateMaintenance(context);
-            SetVariable(statements, "_marker", context.GenerateMarker(skip), false);
+            return SetVariable(new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
+                value);
+        }
+
+        public static CodeMethodInvokeExpression SetVariable(CodeExpression variableName, CodeExpression value)
+        {
+            return new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
+                variableName,
+                value);
         }
 
         public static void SetVariable(this CodeStatementCollection statements, string variableName, object value, bool gameVariable = true)
         {
-            var setVariable = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "SetValue",
-                new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
-                new CodePrimitiveExpression(value));
-
-            statements.Add(setVariable);
+            statements.Add(SetVariable(variableName, new CodePrimitiveExpression(value), gameVariable));
         }
 
         public static void Decrease(this CodeStatementCollection statements, string variableName, int amount)
@@ -129,7 +132,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
 
             method.Statements.Add(
-                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                new CodeVariableDeclarationStatement(CodeConstants.Var, "target",
                     new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
                     , new CodeVariableReferenceExpression("name"))));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
@@ -154,7 +157,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(int), "amount"));
 
             method.Statements.Add(
-                new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "target",
+                new CodeVariableDeclarationStatement(CodeConstants.Var, "target",
                     new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<int>"
                         , new CodeVariableReferenceExpression("name"))));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),

@@ -12,46 +12,38 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void GenerateSay(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
             CodeGeneration_Randomiser.Ensure(context);
-            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "OutputSpeech");
-            var right = text.AsCodeOutputSpeech(generate);
-            var singleSayAssign = new CodeAssignStatement(left, right);
-            generate.Statements.Add(singleSayAssign);
+
+            var method = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Output"),
+                "AddSpeech",
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
+            foreach (var s in text.Content)
+            {
+                method.Parameters.Add(new CodePrimitiveExpression(s));
+            }
+            generate.Statements.Add(method);
         }
 
         public static void GenerateReprompt(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
             CodeGeneration_Randomiser.Ensure(context);
 
-            var right = text.AsCodeOutputSpeech(generate);
-            var reprompt = new CodeVariableDeclarationStatement(new CodeTypeReference("var"), "reprompt", new CodeObjectCreateExpression(typeof(Reprompt)));
-            generate.Statements.Add(reprompt);
-
-            generate.Statements.Add(new CodeAssignStatement(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("reprompt"), "OutputSpeech"), right));
-
-            var left = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("responseBody"), "Reprompt");
-            var singleSayAssign = new CodeAssignStatement(left, new CodeVariableReferenceExpression("reprompt"));
-            generate.Statements.Add(singleSayAssign);
+            generate.Statements.Add(new CodeMethodInvokeExpression(
+                CodeConstants.RequestVariableRef,
+                "SetValue",
+                new CodePrimitiveExpression("scene_reprompt"),
+                CodeConstants.GeneratePickFrom(text.Content)));
         }
 
-        public static void GenerateRecap(CodeTypeDeclaration type, Text text, CodeGeneratorContext context)
+        public static void GenerateRecap(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
         {
-            var method = new CodeMemberMethod
-            {
-                Name = "Recap",
-                Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference("async Task")
-            };
+            CodeGeneration_Randomiser.Ensure(context);
 
-            method.AddResponseParams(true);
-            type.Members.Add(method);
-            GenerateSay(method, text, context);
-
-            CodeGeneration_Fallback.AddToFallback(context,
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(type.Name), "Recap",
-                    new CodeVariableReferenceExpression("information"),
-                    new CodeVariableReferenceExpression("response"))
-            );
-
+            generate.Statements.Add(new CodeMethodInvokeExpression(
+                CodeConstants.RequestVariableRef,
+                "SetValue",
+                new CodePrimitiveExpression("scene_recap"),
+                CodeConstants.GeneratePickFrom(text.Content)));
         }
     }
 }
