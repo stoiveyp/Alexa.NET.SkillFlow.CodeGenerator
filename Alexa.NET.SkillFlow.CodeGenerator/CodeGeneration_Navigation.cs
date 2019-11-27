@@ -101,10 +101,27 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateCurrentSceneMethod());
             type.Members.Add(CreateResume());
             type.Members.Add(CreateEnableCandidateInteraction());
+            type.Members.Add(CreateHasCandidatesInteractions());
             type.Members.Add(CreateIsEnabledCandidateInteractions());
             type.Members.Add(CreateClearCandidateInteractions());
 
             return type;
+        }
+
+        private static CodeTypeMember CreateHasCandidatesInteractions()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "HasCandidates",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference(typeof(bool))
+            };
+            method.AddRequestParam();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "candidateList",
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(CandidateVariableName))));
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeSnippetExpression("candidateList == null ? false : candidateList.Any()")));
+            return method;
         }
 
         private static CodeTypeMember CreateIsEnabledCandidateInteractions()

@@ -32,13 +32,39 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.EndDirectives.Add(new CodeRegionDirective(
                 CodeRegionMode.End, string.Empty));
 
-
-            type.Members.Add(CreateGenerateMethod());
             type.Members.Add(CreateSetTemplate());
             type.Members.Add(CreateSetDataProperty());
             type.Members.Add(CreateAddSpeech());
+            type.Members.Add(CreateGenerateMethod());
+            type.Members.Add(CreateGenerateSpeech());
 
             return type;
+        }
+
+        private static CodeMemberMethod CreateGenerateSpeech()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "GenerateSpeech",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = new CodeTypeReference("SkillResponse")
+            };
+
+            method.Parameters.Add(
+                new CodeParameterDeclarationExpression(
+                    new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
+                    CodeConstants.RequestVariableName));
+
+            var checkForCandidates = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
+                    "HasCandidates", new CodeVariableReferenceExpression(CodeConstants.RequestVariableName)));
+
+            checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"),"Ask")));
+            checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell")));
+
+            method.Statements.Add(checkForCandidates);
+
+            return method;
         }
 
         private static CodeMemberMethod CreateAddSpeech()
@@ -56,7 +82,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(
                 new CodeTypeReference(typeof(string)), "speech"));
 
-            var items = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("request"), "Items");
+            var items = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), "Items");
             var speech = new CodePrimitiveExpression("speech");
             method.Statements.Add(new CodeConditionStatement(
                 new CodeBinaryOperatorExpression(new CodeMethodInvokeExpression(
@@ -140,12 +166,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeVariableDeclarationStatement(
                     new CodeTypeReference("var"),
                     CodeConstants.ResponseVariableName,
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)),
-                        "Ask",
-                        new CodePropertyReferenceExpression(new CodeTypeReferenceExpression(typeof(string)), "Empty"),
-                        new CodePrimitiveExpression(null))
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Output"),"GenerateSpeech",new CodeVariableReferenceExpression(CodeConstants.RequestVariableName))
                 )
             );
+
+            
 
             method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
 
@@ -157,7 +182,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var code = new CodeCompileUnit();
             var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("System"));
-            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Response"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
