@@ -14,6 +14,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
+            UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"],context.RequestHandlers.Keys.ToArray());
+
             var json = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
 
             using (var csharp = CodeDomProvider.CreateProvider(CodeDomProvider.GetLanguageFromExtension(".cs")))
@@ -30,6 +32,21 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     OutputRequestHandlers(context.RequestHandlers, csharp, handlerFileDirectory)
                 );
             }
+        }
+
+        private static void UpdatePipeline(CodeCompileUnit code,string[] requestHandlers)
+        {
+            var array = new CodeArrayCreateExpression(new CodeTypeReference("IAlexaRequestHandler<APLSkillRequest>[]"));
+            foreach (var requestHandler in requestHandlers.OrderBy(rh => rh.Length))
+            {
+                array.Initializers.Add(new CodeObjectCreateExpression(requestHandler));
+            }
+            var pipeline = new CodeObjectCreateExpression(new CodeTypeReference("AlexaRequestPipeline<APLSkillRequest>"),array);
+            
+
+            var constructor = code.FirstType().Members.OfType<CodeTypeConstructor>().First();
+            constructor.Statements.Add(new CodeAssignStatement(new CodeVariableReferenceExpression("_pipeline"),
+                pipeline));
         }
 
         private static async Task OutputSkillManifest(CodeGeneratorContext context, JsonSerializer json, string directoryFullName)

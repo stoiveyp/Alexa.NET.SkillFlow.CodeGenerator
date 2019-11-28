@@ -1,4 +1,5 @@
-﻿using Alexa.NET.SkillFlow.CodeGenerator;
+﻿using System.IO;
+using Alexa.NET.SkillFlow.CodeGenerator;
 using CommandLine;
 
 namespace Alexa.NET.SkillFlow.Tool
@@ -8,14 +9,17 @@ namespace Alexa.NET.SkillFlow.Tool
         [Option('i',"input",HelpText="The skill flow story file",Required = true)]
         public string Input { get; set; }
 
-        [Option('o',"output",HelpText = "The directory to place the code into")]
-        public string Output { get; set; }
+        [Option('o', "output", HelpText = "The directory to place the code into")]
+        public string Output { get; set; } = Path.Combine(".", "output");
 
         [Option('s',"skill",HelpText="The invocation name for the skill")]
         public string SkillName { get; set; }
 
         [Option('r',"root",HelpText="The root namespace")]
         public string RootNamespace { get; set; }
+
+        [Option('l',"lambda",HelpText="Outputs a lambda function. Defaults to true",Default = true)]
+        public bool IncludeLambda { get; set; }
 
         public CodeGeneratorOptions ToCodeGenerator()
         {
@@ -29,6 +33,8 @@ namespace Alexa.NET.SkillFlow.Tool
             {
                 options.SkillName = SkillName;
             }
+
+            options.IncludeLambda = IncludeLambda;
 
             return options;
         }
