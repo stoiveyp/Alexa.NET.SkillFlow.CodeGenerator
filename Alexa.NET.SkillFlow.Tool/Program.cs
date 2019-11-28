@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Alexa.NET.SkillFlow.CodeGenerator;
 using CommandLine;
@@ -12,20 +13,18 @@ namespace Alexa.NET.SkillFlow.Tool
             Task task = null;
             Parser.Default.ParseArguments<CommandLineArguments>(args).WithParsed(cla =>
                 {
+                    Console.Out.WriteLine($"Processing {Path.GetFileName(cla.Input)}. Output in {cla.Output}");
                     task = ProcessArguments(cla);
                 }).WithNotParsed(e => { task = Task.FromResult((object) null); });
             if (task != null)
             {
                 await task;
+                Console.Out.WriteLine("Processing Complete");
             }
         }
 
         private static async Task ProcessArguments(CommandLineArguments args)
         {
-            if (string.IsNullOrWhiteSpace(args.Output))
-            {
-                args.Output = Path.Combine(".", "output");
-            }
             var directory = new DirectoryInfo(args.Output);
             if (!directory.Exists)
             {

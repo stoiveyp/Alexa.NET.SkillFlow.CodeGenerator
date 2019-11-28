@@ -15,7 +15,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         protected override Task Begin(Story story, CodeGeneratorContext context)
         {
-            CodeGeneration_Story.CreateProjectFile(context);
+            CodeGeneration_Story.CreateStoryFiles(context);
             return base.Begin(story, context);
         }
         protected override Task Begin(Scene scene, CodeGeneratorContext context)

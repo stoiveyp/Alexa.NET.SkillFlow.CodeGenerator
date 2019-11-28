@@ -2,7 +2,7 @@
 A small library that outputs Alexa.NET compatible code from a SkillFlow model
 
 To-Do:
-Lambda Function Creation
+lambda tools defaults to help lambda publish wizard
 Recap/Fallback support
 
 Special commands

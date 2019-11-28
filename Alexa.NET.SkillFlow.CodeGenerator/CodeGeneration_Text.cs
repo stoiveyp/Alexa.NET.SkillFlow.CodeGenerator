@@ -13,15 +13,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             CodeGeneration_Randomiser.Ensure(context);
 
-            var method = new CodeMethodInvokeExpression(
-                new CodeTypeReferenceExpression("Output"),
-                "AddSpeech",
-                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName));
-            foreach (var s in text.Content)
+            foreach (var content in text.Content)
             {
-                method.Parameters.Add(new CodePrimitiveExpression(s));
+                var method = new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("Output"),
+                    "AddSpeech",
+                    new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),new CodePrimitiveExpression(content));
+                generate.Statements.Add(method);
             }
-            generate.Statements.Add(method);
         }
 
         public static void GenerateReprompt(CodeMemberMethod generate, Text text, CodeGeneratorContext context)
