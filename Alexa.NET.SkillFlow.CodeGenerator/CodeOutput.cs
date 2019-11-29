@@ -110,6 +110,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             //Need to wire up prepend and append into scene navigation
             return Task.WhenAll(handlers.Select(async c =>
             {
+                AddFallback(c.Value.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod));
                 using (var textWriter =
                     new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key.Safe()) + ".cs", FileMode.Create, FileAccess.Write)))
                 {
@@ -121,6 +122,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 }
 
             }));
+        }
+
+        private static void AddFallback(CodeStatementCollection newStatements)
+        {
+            newStatements.AddBeforeReturn(new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("handled"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(false)),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("await Navigation"),
+                    CodeConstants.NavigationMethodName,
+                    new CodePrimitiveExpression("_fallback"),
+                    new CodeVariableReferenceExpression("request")))));
         }
 
         private static Task OutputSceneFiles(Dictionary<string, CodeCompileUnit> scenes, CodeDomProvider csharp, string directoryFullName)

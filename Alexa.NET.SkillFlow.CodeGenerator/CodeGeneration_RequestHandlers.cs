@@ -108,16 +108,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     CodeConstants.RequestVariableName));
 
-            method.Statements.Add(
-                new CodeVariableDeclarationStatement(
-                    new CodeTypeReference("var"),
-                    CodeConstants.ResponseVariableName,
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(ResponseBuilder)),
-                        "Ask",
-                        new CodePropertyReferenceExpression(new CodeTypeReferenceExpression(typeof(string)), "Empty"),
-                    new CodePrimitiveExpression(null))
-                )
-            );
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "handled",
+                new CodePrimitiveExpression(false)));
 
             method.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Output"),CodeConstants.OutputGenerateMethod,new CodeVariableReferenceExpression("request"))));
             mainClass.Members.Add(method);

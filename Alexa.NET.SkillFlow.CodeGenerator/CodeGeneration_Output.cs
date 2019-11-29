@@ -250,7 +250,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                         new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),"GetValue<string>",
                         new CodePrimitiveExpression("scene_reprompt")))));
             checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("reprompt == null ? null : new Reprompt{OutputSpeech=reprompt}"))));
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("new Reprompt{OutputSpeech=reprompt == null ? speech : reprompt}"))));
             checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell", new CodeVariableReferenceExpression("speech"))));
 

@@ -6,6 +6,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Alexa.NET.Request;
 using Alexa.NET.RequestHandlers;
+using Newtonsoft.Json.Linq;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -52,7 +53,26 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             if (context.Options.IncludeLambda)
             {
                 CreateLambdaFunction(context);
+                CreateLambdaJson(context);
             }
+        }
+
+        private static void CreateLambdaJson(CodeGeneratorContext context)
+        {
+            var content = new JObject
+            {
+                {"configuration", "Release"},
+                {"framework", "netcoreapp2.1"},
+                {"function-runtime", "dotnetcore2.1"},
+                {"function-memory-size", 256},
+                {"function-timeout", 30},
+                {
+                    "function-handler",
+                    $"{context.Options.SafeSkillName}::{context.Options.SafeRootNamespace}.Function::FunctionHandler"
+                },
+                {"function-name", context.Options.SafeSkillName}
+            };
+            context.OtherFiles.Add("aws-lambda-tools-defaults.json", content);
         }
 
         private static void CreatePipelineCreation(CodeGeneratorContext context)
