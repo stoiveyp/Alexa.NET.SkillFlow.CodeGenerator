@@ -48,7 +48,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 hearPhrases.Remove("*");
             }
 
-            var dictionary = hearPhrases.ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
+            string CheckForDefaults(string key)
+            {
+                if (key.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "AMAZON.YesIntent";
+                }
+
+                if (key.Equals("no", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "AMAZON.NoIntent";
+                }
+
+                return key;
+            }
+
+            var dictionary = hearPhrases.Select(CheckForDefaults).ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
 
             var nulls = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
 

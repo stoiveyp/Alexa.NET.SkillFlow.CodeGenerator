@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Linq;
+using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Management.Skills;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -55,6 +56,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         private static async Task OutputSkillManifest(CodeGeneratorContext context, JsonSerializer json, string directoryFullName)
         {
             var language = context.Language;
+            language.SlotTypes = context.Slots.Select(s => new SlotType
+            {
+                Name = s.Key, Values = new []{new SlotTypeValue
+                {
+                    Name=new SlotTypeValueName { Value=s.Value}
+                }
+            }}).ToArray();
             var oldName = language.InvocationName;
             language.InvocationName = context.InvocationName;
             using (var manifestStream = File.Open(Path.Combine(directoryFullName, "skillManifest.json"), FileMode.Create, FileAccess.Write))
