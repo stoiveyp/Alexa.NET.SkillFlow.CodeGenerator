@@ -40,8 +40,33 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateOutputSpeech());
             type.Members.Add(CreateAttachApl());
             type.Members.Add(CreateSetVisualProperty());
+            type.Members.Add(CreateFallback());
 
             return type;
+        }
+
+        private static CodeMemberMethod CreateFallback()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Fallback",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = CodeConstants.AsyncTask
+            };
+            method.AddRequestParam();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "recap",
+                CodeGeneration_Instructions.GetVariable("scene_recap",typeof(string),false)));
+
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)),"IsNullOrWhiteSpace",new CodeVariableReferenceExpression("recap"))));
+
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Output"),
+                "AddSpeech",
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), new CodeVariableReferenceExpression("recap")));
+
+            return method;
         }
 
         private static CodeMemberMethod CreateSetVisualProperty()
@@ -124,10 +149,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 CodeConstants.RequestVariableRef, dsVar, new CodePrimitiveExpression("scene_title")));
             method.Statements.Add(new CodeMethodInvokeExpression(_refOutput, "SetVisualProperty",
                 CodeConstants.RequestVariableRef, dsVar, new CodePrimitiveExpression("scene_subtitle")));
-
-            //SetVisualProperty(request, ds, "scene_background");
-            //SetVisualProperty(request, ds, "scene_title");
-            //SetVisualProperty(request, ds, "scene_subtitle");
 
             method.Statements.Add(new CodeMethodInvokeExpression(
                 new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("directive"), "DataSources"),

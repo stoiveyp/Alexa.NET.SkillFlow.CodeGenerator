@@ -29,6 +29,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             new CodeVariableReferenceExpression(RequestVariableName);
 
         public static readonly CodeTypeReference Var = new CodeTypeReference("var");
+        public static readonly CodeTypeReference AsyncTask = new CodeTypeReference("async Task");
 
         public static CodeExpression GeneratePickFrom(IEnumerable<string> content)
         {

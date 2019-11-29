@@ -17,7 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return CreateRequestHandlerUnit(context, launchRequestName, mainClass);
         }
 
-        public static CodeCompileUnit CreateIntentRequestHandler(this CodeGeneratorContext context, string intentName, bool addIfMarker = true)
+        public static CodeCompileUnit CreateIntentRequestHandler(this CodeGeneratorContext context, string intentName)
         {
             if (context.RequestHandlers.ContainsKey(intentName))
             {

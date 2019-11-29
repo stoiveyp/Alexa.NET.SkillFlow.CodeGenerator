@@ -8,9 +8,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static CodeTypeDeclaration Ensure(CodeGeneratorContext context)
         {
-            var type = context.CreateIntentRequestHandler(BuiltInIntent.Fallback, false).FirstType();
-
+            var type = context.CreateIntentRequestHandler(BuiltInIntent.Fallback).FirstType();
             var handle = type.MethodStatements(CodeConstants.HandlerPrimaryMethod);
+            CodeGeneration_Interaction.AddHandlerCheck(handle, context,CodeConstants.FallbackMarker);
             var returnStmt = handle.OfType<CodeMethodReturnStatement>().First();
             if (!(returnStmt.Expression is CodeMethodInvokeExpression))
             {
@@ -20,6 +20,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     "Fallback"
                 ).AddFlowParameters()));
             }
+
+            var invoke = new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("await Navigation"),
+                CodeConstants.NavigationMethodName);
+            invoke.AddFlowParameters();
 
             return type;
         }

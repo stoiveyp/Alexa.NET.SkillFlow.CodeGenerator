@@ -15,6 +15,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
             UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"],context.RequestHandlers.Keys.ToArray());
+            CodeGeneration_Fallback.Ensure(context);
 
             var json = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
 
@@ -41,6 +42,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 array.Initializers.Add(new CodeObjectCreateExpression(requestHandler));
             }
+
+            array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.FallbackIntent".Safe()));
             var pipeline = new CodeObjectCreateExpression(new CodeTypeReference("AlexaRequestPipeline<APLSkillRequest>"),array);
             
 
@@ -129,10 +132,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             newStatements.AddBeforeReturn(new CodeConditionStatement(
                 new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("handled"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(false)),
                 new CodeExpressionStatement(new CodeMethodInvokeExpression(
-                    new CodeTypeReferenceExpression("await Navigation"),
-                    CodeConstants.NavigationMethodName,
-                    new CodePrimitiveExpression("_fallback"),
-                    new CodeVariableReferenceExpression("request")))));
+                    new CodeTypeReferenceExpression("await Output"),
+                    "Fallback",new CodeVariableReferenceExpression("request")))));
         }
 
         private static Task OutputSceneFiles(Dictionary<string, CodeCompileUnit> scenes, CodeDomProvider csharp, string directoryFullName)

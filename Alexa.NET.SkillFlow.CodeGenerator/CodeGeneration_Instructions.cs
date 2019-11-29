@@ -55,10 +55,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             statements.Add(clearCall);
         }
 
-        public static CodeMethodInvokeExpression GetVariable(string variableName, Type type)
+        public static CodeMethodInvokeExpression GetVariable(string variableName, Type type, bool gameVariable = true)
         {
             var getStmt = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue",
-                new CodePrimitiveExpression("game_" + variableName));
+                new CodePrimitiveExpression((gameVariable? "game_" : string.Empty) + variableName));
             getStmt.Method.TypeArguments.Add(type);
             return getStmt;
         }
