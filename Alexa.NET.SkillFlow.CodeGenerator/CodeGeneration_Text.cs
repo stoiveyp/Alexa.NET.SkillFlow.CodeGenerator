@@ -1,9 +1,6 @@
-﻿using System;
-using System.CodeDom;
+﻿using System.CodeDom;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Alexa.NET.Response;
+using System.Text.RegularExpressions;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -15,12 +12,47 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             foreach (var content in text.Content)
             {
+                var variableReady = VariableSplitArray(content);
                 var method = new CodeMethodInvokeExpression(
                     new CodeTypeReferenceExpression("Output"),
                     "AddSpeech",
-                    new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),new CodePrimitiveExpression(content));
+                    new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),
+                    variableReady.Length == 1 ? variableReady[0] : 
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
+                        variableReady));
                 generate.Statements.Add(method);
             }
+        }
+
+        private static Regex ContentVariableRegex = new Regex(@"\{(?<name>\w+)\}", RegexOptions.Compiled);
+        private static CodeExpression[] VariableSplitArray(string content)
+        {
+            var currentPosition = 0;
+            var matches = ContentVariableRegex.Matches(content);
+
+            if (matches.Count == 0)
+            {
+                return new CodeExpression[] { new CodePrimitiveExpression(content) };
+            }
+
+            var list = new List<CodeExpression>();
+            foreach (Match match in matches)
+            {
+                if (match.Index != currentPosition)
+                {
+                    list.Add(new CodePrimitiveExpression(content.Substring(currentPosition,match.Index-currentPosition)));
+                }
+
+                var variable = match.Groups["name"].Value;
+                list.Add(CodeGeneration_Instructions.GetVariable(variable,typeof(string)));
+                currentPosition = match.Index + match.Length;
+            }
+
+            if (currentPosition != content.Length)
+            {
+                list.Add(new CodePrimitiveExpression(content.Substring(currentPosition, content.Length - currentPosition)));
+            }
+            return list.ToArray();
         }
 
         public static void GenerateReprompt(CodeMemberMethod generate, Text text, CodeGeneratorContext context)

@@ -18,8 +18,11 @@ namespace Alexa.NET.SkillFlow.Tool
         [Option('r',"root",HelpText="The root namespace")]
         public string RootNamespace { get; set; }
 
-        [Option('l',"lambda",HelpText="Outputs a lambda function. Defaults to true",Default = true)]
-        public bool IncludeLambda { get; set; }
+        [Option('n',"nolambda",HelpText="Produces scenes and request handlers, no lambda function",Default = false)]
+        public bool NoLambda { get; set; }
+
+        [Option('v',"invocation",HelpText="The skill invocation name", Default = "Skill Flow")]
+        public string InvocationName { get; set; }
 
         public CodeGeneratorOptions ToCodeGenerator()
         {
@@ -34,7 +37,8 @@ namespace Alexa.NET.SkillFlow.Tool
                 options.SkillName = SkillName;
             }
 
-            options.IncludeLambda = IncludeLambda;
+            options.IncludeLambda = !NoLambda;
+            options.InvocationName = InvocationName;
 
             return options;
         }

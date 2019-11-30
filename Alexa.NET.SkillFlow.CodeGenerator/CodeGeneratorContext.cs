@@ -14,17 +14,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneratorContext : SkillFlowContext
     {
-        public CodeGeneratorContext() : this(CodeGeneratorOptions.Default)
+        public CodeGeneratorContext() : this(new CodeGeneratorOptions())
         {
 
         }
 
         public CodeGeneratorContext(CodeGeneratorOptions options)
         {
-            Options = options ?? CodeGeneratorOptions.Default;
+            Options = options ?? new CodeGeneratorOptions();
         }
-
-        public string InvocationName { get; set; } = "Skill Flow";
 
         public Language Language { get; set; } = new Language();
 

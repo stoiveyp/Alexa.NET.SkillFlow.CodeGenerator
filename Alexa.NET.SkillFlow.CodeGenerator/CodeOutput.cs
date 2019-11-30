@@ -17,6 +17,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
+            CodeGeneration_Story.CreateProjectFile(context);
             UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"], context.RequestHandlers.Keys.ToArray());
             CodeGeneration_Fallback.Ensure(context);
 
@@ -68,7 +69,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
             }).ToArray();
             var oldName = language.InvocationName;
-            language.InvocationName = context.InvocationName;
+            language.InvocationName = context.Options.InvocationName;
             using (var manifestStream = File.Open(Path.Combine(directoryFullName, "skillManifest.json"), FileMode.Create, FileAccess.Write))
             {
                 using (var jsonWriter = new JsonTextWriter(new StreamWriter(manifestStream)))

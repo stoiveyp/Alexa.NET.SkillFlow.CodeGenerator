@@ -11,12 +11,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Visuals
     {
-        public static CodeMethodInvokeExpression GenerateAplCall(CodeGeneratorContext context, string layout)
+        public static void EnsureLayout(CodeGeneratorContext context, string layout)
         {
             EnsureAPLHelper(context);
             AddLayout(context, layout);
-            return new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("APLHelper"), "GetLayout", new CodePrimitiveExpression(layout));
-
         }
 
         private static void AddLayout(CodeGeneratorContext context, string layout)

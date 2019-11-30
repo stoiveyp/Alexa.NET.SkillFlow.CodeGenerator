@@ -73,6 +73,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             switch (property.Key)
             {
                 case "template":
+                    CodeGeneration_Visuals.EnsureLayout(context,property.Value);
                     var method = new CodeMethodInvokeExpression(
                         new CodeTypeReferenceExpression("Output"),
                         "SetTemplate",

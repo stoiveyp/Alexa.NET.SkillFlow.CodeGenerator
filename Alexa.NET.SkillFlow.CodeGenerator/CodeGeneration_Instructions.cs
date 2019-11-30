@@ -95,7 +95,39 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateDecreaseMethod());
             type.Members.Add(CreateClearMethod());
             type.Members.Add(CreateClearAllMethod());
+            type.Members.Add(CreateUpdateFromSlots());
             return type;
+        }
+
+        private static CodeTypeMember CreateUpdateFromSlots()
+        {
+            var method = new CodeMemberMethod
+            {
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                Name = "UpdateFromSlots",
+            };
+
+            method.AddRequestParam();
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var,"slots",
+                new CodePropertyReferenceExpression(new CodePropertyReferenceExpression(
+                    new CodeCastExpression("IntentRequest",
+                    new CodePropertyReferenceExpression(
+                        new CodePropertyReferenceExpression(
+                            CodeConstants.RequestVariableRef, 
+                            "SkillRequest"),
+                        "Request")), 
+                    "Intent"), "Slots")));
+
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("slots"), CodeBinaryOperatorType.ValueEquality,new CodePrimitiveExpression(null)), 
+                new CodeMethodReturnStatement()));
+
+            method.Statements.Add(new CodeSnippetStatement("foreach(var slot in slots){"));
+            method.Statements.Add(SetVariable(new CodeBinaryOperatorExpression(new CodePrimitiveExpression("game_"), CodeBinaryOperatorType.Add,new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("slot"), "Key")),
+                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("slot"), "Value")));
+            method.Statements.Add(new CodeSnippetStatement("}"));
+
+            return method;
         }
 
         private static CodeTypeMember CreateGetMethod()
@@ -194,10 +226,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression("this AlexaRequestInformation<APLSkillRequest>", "request"));
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "prefix = \"game_\""));
 
             method.Statements.Add(new CodeSnippetStatement(
                 "var attributes = request.State.Session.Attributes;"));
-            method.Statements.Add(new CodeSnippetStatement("foreach(var key in attributes.Keys.Where(k => k.StartsWith(\"game_\")).ToArray()){"));
+            method.Statements.Add(new CodeSnippetStatement("foreach(var key in attributes.Keys.Where(k => k.StartsWith(prefix)).ToArray()){"));
             method.Statements.Add(new CodeSnippetStatement("attributes.Remove(key);"));
             method.Statements.Add(new CodeSnippetStatement("}"));
             return method;
@@ -229,6 +262,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var code = new CodeCompileUnit();
             var ns = new CodeNamespace(context.Options.SafeRootNamespace);
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request"));
+            ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.Request.Type"));
             ns.Imports.Add(new CodeNamespaceImport("Alexa.NET.RequestHandlers"));
             ns.Imports.Add(new CodeNamespaceImport("System.Linq"));
             code.Namespaces.Add(ns);
