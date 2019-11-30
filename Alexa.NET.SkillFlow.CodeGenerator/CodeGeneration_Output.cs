@@ -127,7 +127,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeObjectCreateExpression(new CodeTypeReference("RenderDocumentDirective"))));
 
             var aplDocProperty = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("directive"), "Document");
-            //TODO: Add these statements here
+            
             method.Statements.Add(new CodeAssignStatement(
                 aplDocProperty,
                 new CodeObjectCreateExpression(new CodeTypeReference("APLDocument"))));

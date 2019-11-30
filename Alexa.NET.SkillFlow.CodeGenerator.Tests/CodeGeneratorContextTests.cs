@@ -6,13 +6,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
     public class CodeGeneratorContextTests
     {
         [Fact]
-        public void EmptyConstructorGeneratesDefaultOptions()
-        {
-            var context = new CodeGeneratorContext();
-            Assert.Equal(CodeGeneratorOptions.Default, context.Options);
-        }
-
-        [Fact]
         public void ContextConstructorSetsOptions()
         {
             var options = new CodeGeneratorOptions();

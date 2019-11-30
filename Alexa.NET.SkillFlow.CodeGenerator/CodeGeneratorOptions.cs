@@ -10,7 +10,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public string SafeRootNamespace => string.IsNullOrWhiteSpace(RootNamespace) ? "SkillFlowGenerated" : RootNamespace.Safe();
         public string SafeSkillName => string.IsNullOrWhiteSpace(SkillName) ? "SkillFlow" : SkillName.Safe();
         public bool IncludeLambda { get; set; } = true;
-
-        public static readonly CodeGeneratorOptions Default = new CodeGeneratorOptions();
+        public string InvocationName { get; set; } = "Skill Flow";
     }
 }

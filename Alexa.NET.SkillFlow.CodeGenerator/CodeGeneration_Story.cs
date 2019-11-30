@@ -12,7 +12,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public class CodeGeneration_Story
     {
-        private static XDocument CreateProjectOutline(bool includeLambda)
+        private static XDocument CreateProjectOutline(bool includeLambda, bool hasApl)
         {
             void AddItemGroup(XElement parent, string name, string version)
             {
@@ -32,6 +32,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 AddItemGroup(itemGroup, "Amazon.Lambda.Serialization.Json", "1.6.0");
             }
 
+            var aplGroup = new XElement("ItemGroup");
+            if (hasApl)
+            {
+                aplGroup.Add(new XElement("None", new XAttribute("Update","apldocuments.json"),
+                new XElement("CopyToOutputDirectory",new XText("PreserveNewest"))));
+            }
+
             var doc = new XDocument(
                 new XElement("Project",
                     new XAttribute("Sdk", "Microsoft.NET.Sdk"),
@@ -39,7 +46,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                         new XElement("TargetFramework", new XText("netcoreapp2.1")),
                         new XElement("GenerateRuntimeConfigurationFiles", new XText("true")),
                         new XElement("AWSProjectType", new XText("Lambda"))
-                    ), itemGroup
+                    ), itemGroup, aplGroup
                 )
             );
 
@@ -48,7 +55,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void CreateStoryFiles(CodeGeneratorContext context)
         {
-            CreateProjectFile(context);
             CreatePipelineCreation(context);
             if (context.Options.IncludeLambda)
             {
@@ -166,7 +172,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static void CreateProjectFile(CodeGeneratorContext context)
         {
-            var output = CreateProjectOutline(context.Options.IncludeLambda);
+            var output = CreateProjectOutline(context.Options.IncludeLambda,context.OtherFiles.ContainsKey("apldocuments.json"));
 
             var storage = new MemoryStream();
             using (var newProject = new StreamWriter(storage, Encoding.UTF8, 1024, true))
