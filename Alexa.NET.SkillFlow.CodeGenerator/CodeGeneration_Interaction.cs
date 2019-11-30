@@ -126,6 +126,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
                 for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2; stmtIndex++)
                 {
+                    if (sharedStatements[stmtIndex] is CodeVariableDeclarationStatement)
+                    {
+                        continue;
+                    }
                     newStatements.AddBeforeReturn(sharedStatements[stmtIndex]);
                 }
 

@@ -196,6 +196,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     //implement scene stack? Dictionary access to generates?
                     break;
                 case End end:
+                    statements.Reset();
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Pause pause:
                     break;
@@ -204,6 +206,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case Reprompt reprompt:
                     break;
                 case Restart restart:
+                    statements.Clear("scene_");
+                    statements.Clear("_scene");
+                    CodeGeneration_Navigation.GoToScene("start");
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Resume resume:
                     break;
