@@ -6,8 +6,10 @@ lambda tools defaults to help lambda publish wizard
 Recap/Fallback support
 
 Special commands
-Extensions
 Variables
 
-Slot Types inside skill definition
-"Last Audio" Support
+_YesIntent and _NoIntent replace with proper intent
+Readme instructions
+Upload to NuGet with tool name
+
+Extensions

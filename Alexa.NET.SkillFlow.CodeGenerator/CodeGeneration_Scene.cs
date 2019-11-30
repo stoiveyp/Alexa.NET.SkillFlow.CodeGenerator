@@ -42,7 +42,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 Name = CodeConstants.ScenePrimaryMethod,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference("async Task")
+                ReturnType = CodeConstants.AsyncTask
             };
 
             method.AddFlowParams();
@@ -55,7 +55,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 Name = CodeConstants.SceneInteractionMethod,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference("async Task")
+                ReturnType = CodeConstants.AsyncTask
             };
             method.AddInteractionParams();
             method.AddFlowParams();

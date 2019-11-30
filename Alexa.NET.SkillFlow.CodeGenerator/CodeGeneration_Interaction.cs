@@ -23,7 +23,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 Name = "Hear_" + count,
                 Attributes = MemberAttributes.Public | MemberAttributes.Static,
-                ReturnType = new CodeTypeReference("async Task")
+                ReturnType = CodeConstants.AsyncTask
             };
             newMethod.AddFlowParams();
             type.Members.Add(newMethod);
@@ -37,7 +37,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             invoke.AddFlowParameters();
 
             statements.Add(CodeGeneration_Navigation.EnableCandidate(context.Marker));
-            interactions.AddInteraction(context.Marker,invoke,true);
+            interactions.AddInteraction(context.Marker, invoke, true);
         }
 
         public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases, CodeStatementCollection statements)
@@ -48,7 +48,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 hearPhrases.Remove("*");
             }
 
-            var dictionary = hearPhrases.ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
+            string CheckForDefaults(string key)
+            {
+                if (key.Equals("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "AMAZON.YesIntent";
+                }
+
+                if (key.Equals("no", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "AMAZON.NoIntent";
+                }
+
+                return key;
+            }
+
+            var dictionary = hearPhrases.Select(CheckForDefaults).ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
 
             var nulls = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
 
@@ -73,7 +88,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             foreach (var item in dictionary.Keys.ToArray().Except(nulls))
             {
-                UpdateSharedIntent(context,dictionary,item);
+                UpdateSharedIntent(context, dictionary, item);
             }
 
             if (fallback)
@@ -84,8 +99,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         }
 
         private static void UpdateSharedIntent(
-            CodeGeneratorContext context, 
-            Dictionary<string,IntentType> dictionary,
+            CodeGeneratorContext context,
+            Dictionary<string, IntentType> dictionary,
             string item)
         {
             var sharedIntent = dictionary[item];
@@ -95,11 +110,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             if (sharedIntent.Samples.Length > 1)
             {
                 //Move phrase to its own intent
-                sharedIntent.Samples = sharedIntent.Samples.Except(new[] {item}).ToArray();
+                sharedIntent.Samples = sharedIntent.Samples.Except(new[] { item }).ToArray();
                 var intent = new IntentType
                 {
                     Name = safeItemName,
-                    Samples = new[] {item}
+                    Samples = new[] { item }
                 };
                 sharedIntent = intent;
 
@@ -109,15 +124,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var sharedStatements = sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod);
                 var newStatements = newHandler.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod);
 
-                for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2;stmtIndex++)
+                for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2; stmtIndex++)
                 {
                     newStatements.AddBeforeReturn(sharedStatements[stmtIndex]);
                 }
 
-                
+
                 AddHandlerCheck(newStatements, context);
             }
-        
+
 
             var originalName = sharedIntent.Name;
             sharedIntent.Name = safeItemName;
@@ -133,19 +148,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(safeItemName));
         }
 
-        private static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context)
+        public static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context, string marker = null)
         {
             newStatements.AddBeforeReturn(new CodeConditionStatement(
                 new CodeMethodInvokeExpression(
-                        new CodeTypeReferenceExpression("Navigation"), 
+                        new CodeTypeReferenceExpression("Navigation"),
                         CodeConstants.IsCandidateMethodName,
                         new CodeVariableReferenceExpression("request"),
-                        new CodePrimitiveExpression(context.Marker)),
+                        new CodePrimitiveExpression(marker ?? context.Marker)),
                 new CodeExpressionStatement(new CodeMethodInvokeExpression(
                     new CodeTypeReferenceExpression("await Navigation"),
                     CodeConstants.NavigationMethodName,
                     new CodePrimitiveExpression(context.Marker),
-                    new CodeVariableReferenceExpression("request")))));
+                    new CodeVariableReferenceExpression("request"))), new CodeAssignStatement(new CodeVariableReferenceExpression("handled"), new CodePrimitiveExpression(true))));
         }
     }
 }

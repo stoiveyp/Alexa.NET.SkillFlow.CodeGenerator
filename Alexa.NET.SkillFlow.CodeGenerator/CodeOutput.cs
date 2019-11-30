@@ -6,7 +6,10 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Linq;
+using Alexa.NET.Management;
+using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Management.Skills;
+using Newtonsoft.Json.Linq;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
 {
@@ -14,7 +17,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
     {
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
-            UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"],context.RequestHandlers.Keys.ToArray());
+            UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"], context.RequestHandlers.Keys.ToArray());
+            CodeGeneration_Fallback.Ensure(context);
 
             var json = JsonSerializer.Create(new JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
 
@@ -34,15 +38,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
         }
 
-        private static void UpdatePipeline(CodeCompileUnit code,string[] requestHandlers)
+        private static void UpdatePipeline(CodeCompileUnit code, string[] requestHandlers)
         {
             var array = new CodeArrayCreateExpression(new CodeTypeReference("IAlexaRequestHandler<APLSkillRequest>[]"));
             foreach (var requestHandler in requestHandlers.OrderBy(rh => rh.Length))
             {
                 array.Initializers.Add(new CodeObjectCreateExpression(requestHandler));
             }
-            var pipeline = new CodeObjectCreateExpression(new CodeTypeReference("AlexaRequestPipeline<APLSkillRequest>"),array);
-            
+
+            array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.FallbackIntent".Safe()));
+            var pipeline = new CodeObjectCreateExpression(new CodeTypeReference("AlexaRequestPipeline<APLSkillRequest>"), array);
+
 
             var constructor = code.FirstType().Members.OfType<CodeTypeConstructor>().First();
             constructor.Statements.Add(new CodeAssignStatement(new CodeVariableReferenceExpression("_pipeline"),
@@ -52,6 +58,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         private static async Task OutputSkillManifest(CodeGeneratorContext context, JsonSerializer json, string directoryFullName)
         {
             var language = context.Language;
+            language.SlotTypes = context.Slots.Select(s => new SlotType
+            {
+                Name = s.Key,
+                Values = new[]{new SlotTypeValue
+                {
+                    Name=new SlotTypeValueName { Value=s.Value}
+                }
+            }
+            }).ToArray();
             var oldName = language.InvocationName;
             language.InvocationName = context.InvocationName;
             using (var manifestStream = File.Open(Path.Combine(directoryFullName, "skillManifest.json"), FileMode.Create, FileAccess.Write))
@@ -62,7 +77,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     {
                         Language = language
                     };
-                    json.Serialize(jsonWriter, interactionModel);
+                    var jobject = new JObject {{"interactionModel", JObject.FromObject(interactionModel)}};
+                    json.Serialize(jsonWriter, jobject);
                     await jsonWriter.FlushAsync();
                 }
             }
@@ -110,6 +126,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             //Need to wire up prepend and append into scene navigation
             return Task.WhenAll(handlers.Select(async c =>
             {
+                AddFallback(c.Value.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod));
                 using (var textWriter =
                     new StreamWriter(File.Open(Path.Combine(directoryFullName, c.Key.Safe()) + ".cs", FileMode.Create, FileAccess.Write)))
                 {
@@ -123,6 +140,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }));
         }
 
+        private static void AddFallback(CodeStatementCollection newStatements)
+        {
+            newStatements.AddBeforeReturn(new CodeConditionStatement(
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("handled"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(false)),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("await Output"),
+                    "Fallback", new CodeVariableReferenceExpression("request")))));
+        }
+
         private static Task OutputSceneFiles(Dictionary<string, CodeCompileUnit> scenes, CodeDomProvider csharp, string directoryFullName)
         {
             var prependScene = CodeGeneration_Scene.SceneClassName("Global Prepend");
@@ -133,7 +159,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return Task.WhenAll(scenes.Select(async c =>
             {
                 var type = c.Value.FirstType();
-                if (!type.Name.Equals(prependScene,StringComparison.OrdinalIgnoreCase) && 
+                if (!type.Name.Equals(prependScene, StringComparison.OrdinalIgnoreCase) &&
                     !type.Name.Equals(appendScene, StringComparison.OrdinalIgnoreCase))
                 {
                     var interaction = c.Value.FirstType().MethodStatements(CodeConstants.SceneInteractionMethod);

@@ -40,8 +40,36 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateOutputSpeech());
             type.Members.Add(CreateAttachApl());
             type.Members.Add(CreateSetVisualProperty());
+            type.Members.Add(CreateFallback());
 
             return type;
+        }
+
+        private static CodeMemberMethod CreateFallback()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Fallback",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = CodeConstants.AsyncTask
+            };
+            method.AddRequestParam();
+
+            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "recap",
+                CodeGeneration_Instructions.GetVariable("scene_recap",typeof(string),false)));
+
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)),"IsNullOrWhiteSpace",new CodeVariableReferenceExpression("recap")),
+                new CodeVariableDeclarationStatement(CodeConstants.Var,"lastSpeech", CodeGeneration_Instructions.GetVariable("scene_lastSpeech", typeof(string), false)),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("Output"), "AddSpeech",new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), new CodeVariableReferenceExpression("lastSpeech")))));
+
+            method.Statements.Add(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Output"),
+                "AddSpeech",
+                new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), new CodeVariableReferenceExpression("recap")));
+
+            return method;
         }
 
         private static CodeMemberMethod CreateSetVisualProperty()
@@ -125,10 +153,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeMethodInvokeExpression(_refOutput, "SetVisualProperty",
                 CodeConstants.RequestVariableRef, dsVar, new CodePrimitiveExpression("scene_subtitle")));
 
-            //SetVisualProperty(request, ds, "scene_background");
-            //SetVisualProperty(request, ds, "scene_title");
-            //SetVisualProperty(request, ds, "scene_subtitle");
-
             method.Statements.Add(new CodeMethodInvokeExpression(
                 new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("directive"), "DataSources"),
                 "Add", new CodePrimitiveExpression("visualProperty"), new CodeVariableReferenceExpression("ds")));
@@ -184,18 +208,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("IOutputSpeech")
             };
 
-            var param = new CodeParameterDeclarationExpression(typeof(string[]),"speech");
-            param.CustomAttributes.Add(new CodeAttributeDeclaration(new CodeTypeReference(typeof(System.ParamArrayAttribute))));
-            method.Parameters.Add(param);
+            method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "output"));
 
             method.Statements.Add(new CodeConditionStatement(new CodeBinaryOperatorExpression(
-                new CodeVariableReferenceExpression("speech"), CodeBinaryOperatorType.ValueEquality,
+                new CodeVariableReferenceExpression("output"), CodeBinaryOperatorType.ValueEquality,
                 new CodePrimitiveExpression(null)),
                 new CodeMethodReturnStatement(new CodePrimitiveExpression(null))));
-
-            method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "output",
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
-                    new CodeVariableReferenceExpression("speech"))));
 
             var localOutput = new CodeVariableReferenceExpression("output");
             var ssmlCheck = new CodeConditionStatement(new CodeMethodInvokeExpression(
@@ -233,10 +251,25 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var items = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), "Items");
             var speech = new CodePrimitiveExpression("speech");
 
+            method.Statements.Add(
+                new CodeVariableDeclarationStatement(
+                    CodeConstants.Var,
+                    "fullSpeech", 
+                    new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression(typeof(string)),
+                        "Concat",
+                        new CodeMethodInvokeExpression(
+                            new CodeCastExpression("List<string>", new CodeIndexerExpression(items, speech)),
+                            "ToArray"))));
+
+            method.Statements.Add(CodeGeneration_Instructions.SetVariable(
+                new CodePrimitiveExpression("scene_lastSpeech"),new CodeVariableReferenceExpression("fullSpeech")));
+
+
             method.Statements.Add(new CodeVariableDeclarationStatement(
                 new CodeTypeReference("var"),
                 "speech",
-                new CodeMethodInvokeExpression(_refOutput, "CreateOutput", new CodeMethodInvokeExpression(new CodeCastExpression("List<string>", new CodeIndexerExpression(items, speech)), "ToArray"))
+                new CodeMethodInvokeExpression(_refOutput, "CreateOutput",new CodeVariableReferenceExpression("fullSpeech"))
             ));
 
             var checkForCandidates = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
@@ -250,7 +283,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                         new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),"GetValue<string>",
                         new CodePrimitiveExpression("scene_reprompt")))));
             checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(
-                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("reprompt == null ? null : new Reprompt{OutputSpeech=reprompt}"))));
+                new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("new Reprompt{OutputSpeech=reprompt == null ? speech : reprompt}"))));
             checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell", new CodeVariableReferenceExpression("speech"))));
 
