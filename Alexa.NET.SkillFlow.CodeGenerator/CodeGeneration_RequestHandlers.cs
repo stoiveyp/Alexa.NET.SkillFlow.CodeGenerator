@@ -108,6 +108,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     CodeConstants.RequestVariableName));
 
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("State"),
+                "UpdateFromSlots", CodeConstants.RequestVariableRef));
             method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "handled",
                 new CodePrimitiveExpression(false)));
 
