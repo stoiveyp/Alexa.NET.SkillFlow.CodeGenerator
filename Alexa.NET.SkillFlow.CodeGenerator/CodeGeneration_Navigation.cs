@@ -40,12 +40,19 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         public static CodeMethodInvokeExpression AddInteraction(string sceneName, string interactionName)
         {
+            return AddInteraction(
+                new CodePrimitiveExpression(sceneName),
+                new CodePrimitiveExpression(interactionName));
+        }
+
+        public static CodeMethodInvokeExpression AddInteraction(CodeExpression sceneName, CodeExpression interactionName)
+        {
             var methodInvoke = new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("Navigation"),
                 CodeConstants.AddInteractionMethodName,
                 CodeConstants.RequestVariableRef,
-                new CodePrimitiveExpression(sceneName),
-                new CodePrimitiveExpression(interactionName));
+                sceneName,
+                interactionName);
 
             return methodInvoke;
         }
@@ -290,12 +297,22 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 ReturnType = new CodeTypeReference("Task")
             };
 
+            var latestScene = new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
+                new CodeMethodInvokeExpression(
+                    new CodeTypeReferenceExpression("Navigation"),
+                    CodeConstants.CurrentSceneMethodName,
+                    new CodeVariableReferenceExpression("request")));
+
             gtMethod.AddInteractionParams();
             gtMethod.AddFlowParams();
 
+            gtMethod.Statements.Add(AddInteraction(new CodeMethodInvokeExpression(
+                new CodeTypeReferenceExpression("Navigation"),
+                CodeConstants.CurrentSceneMethodName,
+                new CodeVariableReferenceExpression("request")), new CodeVariableReferenceExpression("interaction")));
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
-                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), CodeConstants.CurrentSceneMethodName, new CodeVariableReferenceExpression("request"))), "Invoke",
+                latestScene
+                , "Invoke",
                 new CodeVariableReferenceExpression(CodeConstants.InteractionParameterName),
                 CodeConstants.RequestVariableRef)));
 
@@ -315,6 +332,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             gtMethod.AddInteractionParams();
             gtMethod.AddFlowParams();
 
+            gtMethod.Statements.Add(AddInteraction(new CodeVariableReferenceExpression("sceneName"), new CodeVariableReferenceExpression("interaction")));
             gtMethod.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("_scenes"),
                     new CodeVariableReferenceExpression("sceneName")), "Invoke",
