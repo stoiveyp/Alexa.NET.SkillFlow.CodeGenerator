@@ -214,6 +214,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case Resume resume:
                     statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
                         "Resume", CodeConstants.RequestVariableRef,new CodePrimitiveExpression(true)));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Return returnCmd:
                     statements.Add(new CodeMethodReturnStatement());
@@ -228,9 +229,14 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Back back:
-                    //implement scene stack? Dictionary access to generates?
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Back", CodeConstants.RequestVariableRef));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Pause pause:
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Pause", CodeConstants.RequestVariableRef));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
             }
             return base.Render(instruction, context);

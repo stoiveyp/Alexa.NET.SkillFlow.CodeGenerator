@@ -103,8 +103,30 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             type.Members.Add(CreateHasCandidatesInteractions());
             type.Members.Add(CreateIsEnabledCandidateInteractions());
             type.Members.Add(CreateClearCandidateInteractions());
+            type.Members.Add(CreatePause());
 
             return type;
+        }
+
+        private static CodeTypeMember CreatePause()
+        {
+            var method = new CodeMemberMethod
+            {
+                Name = "Pause",
+                Attributes = MemberAttributes.Public | MemberAttributes.Static,
+                ReturnType = CodeConstants.AsyncTask
+
+            };
+            method.AddRequestParam();
+
+            var pauseRequest = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_scenes"), "ContainsKey", new CodePrimitiveExpression("pause")),
+                new CodeExpressionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                "Interact",
+                new CodePrimitiveExpression("pause"),
+                new CodePrimitiveExpression(CodeConstants.MainSceneMarker),
+                CodeConstants.RequestVariableRef)));
+            method.Statements.Add(pauseRequest);
+            return method;
         }
 
         private static CodeMemberField CreateNotTrackedScenes()
@@ -225,9 +247,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var resumeCheck = new CodeConditionStatement(
                 new CodeBinaryOperatorExpression(
-                    new CodeVariableReferenceExpression("!ignoreScene"), 
+                    new CodeVariableReferenceExpression("!ignoreScene"),
                     CodeBinaryOperatorType.BooleanAnd,
-                    new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_scenes"),"ContainsKey",new CodePrimitiveExpression("resume"))));
+                    new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_scenes"), "ContainsKey", new CodePrimitiveExpression("resume"))));
 
             resumeCheck.TrueStatements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
                 "Interact",
@@ -237,15 +259,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Statements.Add(resumeCheck);
             method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "lastInteraction",
-                new CodeMethodInvokeExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"), "Last"),"Split",new CodePrimitiveExpression('|'))));
+                new CodeMethodInvokeExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"), "Last"), "Split", new CodePrimitiveExpression('|'))));
             method.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeTypeReferenceExpression("Navigation"),
                 "Interact",
-                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"),new CodePrimitiveExpression(0)),
+                new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"), new CodePrimitiveExpression(0)),
                 new CodeArrayIndexerExpression(new CodeVariableReferenceExpression("lastInteraction"), new CodePrimitiveExpression(1)),
                 CodeConstants.RequestVariableRef)));
 
-            
+
             return method;
         }
 
@@ -273,7 +295,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 },
                 new CodeStatement[]
                 {
-                    new CodeVariableDeclarationStatement(typeof(string),"lastInteraction",new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"),"Last")), 
+                    new CodeVariableDeclarationStatement(typeof(string),"lastInteraction",new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("sceneList"),"Last")),
                     new CodeMethodReturnStatement(new CodeArrayIndexerExpression(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("lastInteraction"),"Split",new CodePrimitiveExpression('|')),new CodePrimitiveExpression(0)))
                 }));
 
@@ -292,7 +314,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "sceneName"));
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(String), "interactionName"));
 
-            method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_notTracked"),"Contains",new CodeVariableReferenceExpression("sceneName")),
+            method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_notTracked"), "Contains", new CodeVariableReferenceExpression("sceneName")),
                 new CodeMethodReturnStatement()));
 
             var mainMarkerCheck = new CodeConditionStatement(
@@ -306,7 +328,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(mainMarkerCheck);
 
             method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "sceneList",
-                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),"GetValue<string[]>",new CodePrimitiveExpression(SceneListItemName))));
+                new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(SceneListItemName))));
             method.Statements.Add(new CodeSnippetExpression("var list = sceneList == null ? new List<string>() : new List<string>(sceneList)"));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeof(string)), "Concat",
@@ -337,10 +359,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 CodeConstants.CurrentSceneMethodName,
                 new CodeVariableReferenceExpression("request"));
 
-                gtMethod.Statements.Add(
-                    new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
-                "Interact",
-                latestScene, new CodeVariableReferenceExpression("interaction"), CodeConstants.RequestVariableRef)));
+            gtMethod.Statements.Add(
+                new CodeMethodReturnStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
+            "Interact",
+            latestScene, new CodeVariableReferenceExpression("interaction"), CodeConstants.RequestVariableRef)));
 
             return gtMethod;
         }
@@ -349,7 +371,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             var gtMethod = new CodeMemberMethod
             {
-                Name=CodeConstants.NavigationMethodName,
+                Name = CodeConstants.NavigationMethodName,
                 Attributes = MemberAttributes.Static | MemberAttributes.Public,
                 ReturnType = new CodeTypeReference("Task")
             };
