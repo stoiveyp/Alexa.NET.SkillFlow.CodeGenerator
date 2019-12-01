@@ -56,7 +56,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             statements.Add(clearCall);
         }
 
-        public static void ClearAll(this CodeStatementCollection statements, string prefix = null)
+        public static void ClearAll(this CodeStatementCollection statements, string prefix = "game_")
         {
             var clearCall = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "ClearAll");
             if (prefix != null)

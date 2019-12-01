@@ -202,16 +202,25 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case Pause pause:
                     break;
                 case Repeat repeat:
+                    statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "lastSpeech",
+                        CodeGeneration_Instructions.GetVariable("scene_lastSpeech", typeof(string), false)));
+                    statements.Add(new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "AddSpeech",CodeConstants.RequestVariableRef,
+                    new CodeVariableReferenceExpression("lastSpeech"),new CodePrimitiveExpression(true)));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Reprompt reprompt:
                     break;
                 case Restart restart:
-                    statements.Clear("scene_");
-                    statements.Clear("_scene");
+                    statements.ClearAll("scene_");
+                    statements.ClearAll("_scene");
                     CodeGeneration_Navigation.GoToScene("start");
                     statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Resume resume:
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Resume", CodeConstants.RequestVariableRef,new CodePrimitiveExpression(true)));
                     break;
                 case Return returnCmd:
                     statements.Add(new CodeMethodReturnStatement());
