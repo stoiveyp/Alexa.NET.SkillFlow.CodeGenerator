@@ -81,6 +81,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     Attributes = MemberAttributes.Public
                 };
 
+                className = className.StartsWith("AMAZON_") ? "AMAZON." + className.Substring(7) : className;
                 constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(className));
                 mainClass.Members.Add(constructor);
             });
