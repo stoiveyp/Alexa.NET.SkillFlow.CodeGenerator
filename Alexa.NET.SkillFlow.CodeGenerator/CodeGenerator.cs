@@ -192,22 +192,50 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 case Unflag unflag:
                     statements.SetVariable(unflag.Variable, false);
                     break;
-                case Back back:
-                    //implement scene stack? Dictionary access to generates?
-                    break;
                 case End end:
-                    break;
-                case Pause pause:
+                    statements.Reset();
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Repeat repeat:
-                    break;
-                case Reprompt reprompt:
+                    statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "lastSpeech",
+                        CodeGeneration_Instructions.GetVariable("scene_lastSpeech", typeof(string), false)));
+                    statements.Add(new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "AddSpeech",CodeConstants.RequestVariableRef,
+                    new CodeVariableReferenceExpression("lastSpeech"),new CodePrimitiveExpression(true)));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Restart restart:
+                    statements.ClearAll("scene_");
+                    statements.ClearAll("_scene");
+                    CodeGeneration_Navigation.GoToScene("start");
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Resume resume:
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Resume", CodeConstants.RequestVariableRef,new CodePrimitiveExpression(true)));
+                    statements.Add(new CodeMethodReturnStatement());
                     break;
                 case Return returnCmd:
+                    statements.Add(new CodeMethodReturnStatement());
+                    break;
+                case Reprompt reprompt:
+                    statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "reprompt",
+                        CodeGeneration_Instructions.GetVariable("scene_reprompt", typeof(string), false)));
+                    statements.Add(new CodeMethodInvokeExpression(
+                        new CodeTypeReferenceExpression("Output"),
+                        "AddSpeech", CodeConstants.RequestVariableRef,
+                        new CodeVariableReferenceExpression("reprompt"), new CodePrimitiveExpression(true)));
+                    statements.Add(new CodeMethodReturnStatement());
+                    break;
+                case Back back:
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Back", CodeConstants.RequestVariableRef));
+                    statements.Add(new CodeMethodReturnStatement());
+                    break;
+                case Pause pause:
+                    statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("await Navigation"),
+                        "Pause", CodeConstants.RequestVariableRef));
                     statements.Add(new CodeMethodReturnStatement());
                     break;
             }

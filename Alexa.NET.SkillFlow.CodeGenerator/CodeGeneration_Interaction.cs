@@ -104,7 +104,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             string item)
         {
             var sharedIntent = dictionary[item];
-            var sharedHandlerClass = context.RequestHandlers[sharedIntent.Name].FirstType();
+            var sharedHandlerClass = context.RequestHandlers[sharedIntent.Name.Safe()].FirstType();
+
+            string AmazonSafeName(string original)
+            {
+                return original.StartsWith("AMAZON_") ? "AMAZON." + original.Substring(7) : original;
+            }
 
             var safeItemName = item.Safe();
             if (sharedIntent.Samples.Length > 1)
@@ -113,19 +118,23 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 sharedIntent.Samples = sharedIntent.Samples.Except(new[] { item }).ToArray();
                 var intent = new IntentType
                 {
-                    Name = safeItemName,
-                    Samples = new[] { item }
+                    Name = item,
+                    Samples = item.StartsWith("AMAZON.") ? new string[] { } : new[] { item }
                 };
                 sharedIntent = intent;
 
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
-                dictionary[item] = intent;
+                dictionary[AmazonSafeName(item)] = intent;
                 var newHandler = context.CreateIntentRequestHandler(safeItemName);
                 var sharedStatements = sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod);
                 var newStatements = newHandler.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod);
 
                 for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2; stmtIndex++)
                 {
+                    if (sharedStatements[stmtIndex] is CodeVariableDeclarationStatement)
+                    {
+                        continue;
+                    }
                     newStatements.AddBeforeReturn(sharedStatements[stmtIndex]);
                 }
 
@@ -135,17 +144,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
 
             var originalName = sharedIntent.Name;
-            sharedIntent.Name = safeItemName;
-            var rh = context.RequestHandlers[originalName];
+            sharedIntent.Name = item;
+            var rh = context.RequestHandlers[originalName.Safe()];
 
-            context.RequestHandlers.Remove(originalName);
+            context.RequestHandlers.Remove(originalName.Safe());
             context.RequestHandlers.Add(safeItemName, rh);
 
             var handlerType = rh.FirstType();
             handlerType.Name = safeItemName;
             var constructor = handlerType.Members.OfType<CodeConstructor>().First();
             constructor.BaseConstructorArgs.Clear();
-            constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(safeItemName));
+            constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(AmazonSafeName(safeItemName)));
         }
 
         public static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context, string marker = null)

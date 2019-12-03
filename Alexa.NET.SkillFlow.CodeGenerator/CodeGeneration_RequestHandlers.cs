@@ -48,7 +48,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static CodeTypeDeclaration GenerateLaunchHandler(string className, CodeGeneratorContext context)
         {
-            var handler = GenerateHandlerClass(context, className, mainClass =>
+            var handler = GenerateHandlerClass(className, mainClass =>
             {
                 mainClass.BaseTypes.Add(new CodeTypeReference("LaunchRequestHandler<APLSkillRequest>"));
 
@@ -72,7 +72,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static CodeTypeDeclaration GenerateIntentHandler(string className, CodeGeneratorContext context)
         {
-            var handler = GenerateHandlerClass(context, className.Safe(), mainClass =>
+            var handler = GenerateHandlerClass(className.Safe(), mainClass =>
             {
                 mainClass.BaseTypes.Add(new CodeTypeReference("IntentNameRequestHandler<APLSkillRequest>"));
 
@@ -81,6 +81,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     Attributes = MemberAttributes.Public
                 };
 
+                className = className.StartsWith("AMAZON_") ? "AMAZON." + className.Substring(7) : className;
                 constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(className));
                 mainClass.Members.Add(constructor);
             });
@@ -88,7 +89,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return handler;
         }
 
-        private static CodeTypeDeclaration GenerateHandlerClass(CodeGeneratorContext context, string className, Action<CodeTypeDeclaration> adaptToHandler)
+        private static CodeTypeDeclaration GenerateHandlerClass(string className, Action<CodeTypeDeclaration> adaptToHandler)
         {
             var mainClass = new CodeTypeDeclaration(className)
             {

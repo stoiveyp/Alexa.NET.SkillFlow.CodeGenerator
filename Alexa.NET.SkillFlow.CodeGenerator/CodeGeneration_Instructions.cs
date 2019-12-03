@@ -5,6 +5,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_Instructions
     {
+        public static void Reset(this CodeStatementCollection statements)
+        {
+            statements.ClearAll();
+            statements.ClearAll("scene_");
+            statements.ClearAll("_scene");
+        }
+
         public static CodeMethodInvokeExpression SetVariable(string variableName, CodeExpression value, bool gameVariable)
         {
             return SetVariable(new CodePrimitiveExpression((gameVariable ? "game_" : string.Empty) + variableName),
@@ -49,9 +56,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             statements.Add(clearCall);
         }
 
-        public static void ClearAll(this CodeStatementCollection statements)
+        public static void ClearAll(this CodeStatementCollection statements, string prefix = "game_")
         {
             var clearCall = new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "ClearAll");
+            if (prefix != null)
+            {
+                clearCall.Parameters.Add(new CodePrimitiveExpression(prefix));
+            }
             statements.Add(clearCall);
         }
 
