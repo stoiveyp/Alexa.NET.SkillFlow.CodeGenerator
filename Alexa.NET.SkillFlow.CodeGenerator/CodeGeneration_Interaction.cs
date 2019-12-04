@@ -124,8 +124,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var sharedIntent = dictionary[item];
             var sharedHandlerClass = context.RequestHandlers[AmazonSafeName(sharedIntent.Name)].FirstType();
 
-            
-
             var safeItemName = item.Safe();
             if (sharedIntent.Samples.Length > 1)
             {

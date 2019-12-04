@@ -5,7 +5,6 @@ A small library that outputs Alexa.NET compatible code from a SkillFlow model
 ```bash
 dotnet
 ```
-
 To-Do:
 Test output in skill
 Readme instructions
