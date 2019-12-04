@@ -44,7 +44,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var array = new CodeArrayCreateExpression(new CodeTypeReference("IAlexaRequestHandler<APLSkillRequest>[]"));
             foreach (var requestHandler in requestHandlers.OrderBy(rh => rh.Length))
             {
-                array.Initializers.Add(new CodeObjectCreateExpression(requestHandler));
+                array.Initializers.Add(new CodeObjectCreateExpression(requestHandler.Safe()));
             }
 
             array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.FallbackIntent".Safe()));

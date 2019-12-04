@@ -58,6 +58,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 };
 
                 mainClass.Members.Add(constructor);
+                return false;
             });
 
             var statements = handler.MethodStatements(CodeConstants.HandlerPrimaryMethod);
@@ -84,19 +85,20 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 className = className.StartsWith("AMAZON_") ? "AMAZON." + className.Substring(7) : className;
                 constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(className));
                 mainClass.Members.Add(constructor);
+                return true;
             });
 
             return handler;
         }
 
-        private static CodeTypeDeclaration GenerateHandlerClass(string className, Action<CodeTypeDeclaration> adaptToHandler)
+        private static CodeTypeDeclaration GenerateHandlerClass(string className, Func<CodeTypeDeclaration,bool> adaptToHandler)
         {
             var mainClass = new CodeTypeDeclaration(className)
             {
                 IsClass = true
             };
 
-            adaptToHandler(mainClass);
+            var addUpdateFromSlot = adaptToHandler(mainClass);
 
             var method = new CodeMemberMethod
             {
@@ -109,8 +111,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeParameterDeclarationExpression(new CodeTypeReference("AlexaRequestInformation<Alexa.NET.Request.APLSkillRequest>"),
                     CodeConstants.RequestVariableName));
 
-            method.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("State"),
-                "UpdateFromSlots", CodeConstants.RequestVariableRef));
+            if (addUpdateFromSlot)
+            {
+                method.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("State"),
+                    "UpdateFromSlots", CodeConstants.RequestVariableRef));
+            }
+
             method.Statements.Add(new CodeVariableDeclarationStatement(CodeConstants.Var, "handled",
                 new CodePrimitiveExpression(false)));
 
