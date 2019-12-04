@@ -2,27 +2,33 @@
 
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>botsay</ToolCommandName>
+    <ToolCommandName>skillflow</ToolCommandName>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <ApplicationIcon />
-    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>botsay</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
     <StartupObject />
+    <Authors>Steven Pears</Authors>
+    <Company>teven Pears</Company>
+    <Product />
+    <Description>Small library that converts SkillFlow files into cs projects</Description>
+    <PackageProjectUrl>https://github.com/stoiveyp/Alexa.NET.SkillFlow.CodeGenerator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/stoiveyp/Alexa.NET.SkillFlow.CodeGenerator</RepositoryUrl>
+    <PackageTags>alexa, skillflow, dotnet</PackageTags>
+    <PackageReleaseNotes>Initial Output</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="story.abc" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Alexa.NET.SkillFlow.Interpreter" Version="1.0.2" />
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.2.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Alexa.NET.SkillFlow.CodeGenerator\Alexa.NET.SkillFlow.CodeGenerator.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="story.abc">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

@@ -60,20 +60,34 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     return "AMAZON.NoIntent";
                 }
 
+                if (key.Equals("help", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "AMAZON.HelpIntent";
+                }
+
                 return key;
             }
 
             var dictionary = hearPhrases.Select(CheckForDefaults).ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
 
-            var nulls = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
+            var nullPhrases = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
 
             var intentName = context.Marker;
-            if (nulls.Any())
+            foreach (var nulls in nullPhrases.GroupBy(n => n.StartsWith("AMAZON.") ? n : string.Empty)
+                .Select(g => g.ToArray()))
             {
+                if (!nulls.Any()) continue;
+
+                var azType = nulls.Length == 1 && nulls.First().StartsWith("AMAZON.");
+                if (azType)
+                {
+                    intentName = nulls.Single();
+                }
+
                 var intent = new IntentType
                 {
                     Name = intentName,
-                    Samples = nulls
+                    Samples = azType ? new string[] { } : nulls
                 };
 
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
@@ -86,7 +100,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 }
             }
 
-            foreach (var item in dictionary.Keys.ToArray().Except(nulls))
+            foreach (var item in dictionary.Keys.ToArray().Except(nullPhrases))
             {
                 UpdateSharedIntent(context, dictionary, item);
             }
@@ -95,7 +109,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 statements.Add(CodeGeneration_Navigation.EnableCandidate(CodeConstants.FallbackMarker));
             }
-
         }
 
         private static void UpdateSharedIntent(
@@ -103,13 +116,13 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             Dictionary<string, IntentType> dictionary,
             string item)
         {
-            var sharedIntent = dictionary[item];
-            var sharedHandlerClass = context.RequestHandlers[sharedIntent.Name.Safe()].FirstType();
-
             string AmazonSafeName(string original)
             {
                 return original.StartsWith("AMAZON_") ? "AMAZON." + original.Substring(7) : original;
             }
+
+            var sharedIntent = dictionary[item];
+            var sharedHandlerClass = context.RequestHandlers[AmazonSafeName(sharedIntent.Name)].FirstType();
 
             var safeItemName = item.Safe();
             if (sharedIntent.Samples.Length > 1)
@@ -145,10 +158,10 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             var originalName = sharedIntent.Name;
             sharedIntent.Name = item;
-            var rh = context.RequestHandlers[originalName.Safe()];
+            var rh = context.RequestHandlers[AmazonSafeName(originalName.Safe())];
 
-            context.RequestHandlers.Remove(originalName.Safe());
-            context.RequestHandlers.Add(safeItemName, rh);
+            context.RequestHandlers.Remove(AmazonSafeName(originalName.Safe()));
+            context.RequestHandlers.Add(AmazonSafeName(safeItemName), rh);
 
             var handlerType = rh.FirstType();
             handlerType.Name = safeItemName;
