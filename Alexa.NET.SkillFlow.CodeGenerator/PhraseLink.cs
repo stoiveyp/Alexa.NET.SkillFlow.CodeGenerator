@@ -40,5 +40,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         {
             return intentType.Name == IntentName || intentType.Samples.Contains(Phrase);
         }
+
+        public Slot[] Slots(CodeGeneratorContext context)
+        {
+            if (string.IsNullOrWhiteSpace(Phrase))
+            {
+                return new Slot[]{};
+            }
+            return CodeGeneration_Text.GetVariables(Phrase).Select(m => m.Groups[1].Value).Select(s =>
+                new Slot {Name = s, Type = context.Slots.ContainsKey(s) ? context.Slots[s] : null}).ToArray();
+        }
     }
 }

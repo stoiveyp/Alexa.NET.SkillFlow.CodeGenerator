@@ -18,7 +18,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
 
             var type = context.CodeScope.Peek() as CodeTypeDeclaration;
-            var count = type.Members.OfType<CodeMemberMethod>().Count(m => m.Name.StartsWith("Hear"));
+            var count = NumberAsWord(type.Members.OfType<CodeMemberMethod>().Count(m => m.Name.StartsWith("Hear")));
             var newMethod = new CodeMemberMethod
             {
                 Name = "Hear_" + count,
@@ -40,6 +40,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             interactions.AddInteraction(context.Marker, invoke, true);
         }
 
+        private static string NumberAsWord(int count)
+        {
+            return count switch
+            {
+                0 => "zero",
+                1 => "one",
+                2 => "two",
+                3 => "three",
+                4 => "four",
+                5 => "five",
+                6 => "six",
+                7 => "seven",
+                8 => "eight",
+                9 => "nine",
+                _ => "biggerthannine"
+            };
+        }
+
         public static void AddIntent(CodeGeneratorContext context, List<string> hearPhrases, CodeStatementCollection statements)
         {
             var fallback = hearPhrases.Any(p => p == "*");
@@ -59,7 +77,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var intent = new IntentType
                 {
                     Name = nullItem.Key.IntentName,
-                    Samples = nulls.Where(n => n.Key.Phrase != null).Select(n => n.Key.Phrase).ToArray()
+                    Samples = nulls.Where(n => n.Key.Phrase != null).Select(n => n.Key.Phrase).ToArray(),
+                    Slots = nulls.Where(n => n.Key.Phrase != null).SelectMany(n => n.Key.Slots(context)).GroupBy(s => s.Name).Select(g => g.First()).ToArray()
                 };
 
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
