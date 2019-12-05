@@ -272,6 +272,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 new CodeMethodInvokeExpression(_refOutput, "CreateOutput",new CodeVariableReferenceExpression("fullSpeech"))
             ));
 
+            method.Statements.Add(new CodeVariableDeclarationStatement(new CodeTypeReference("SkillResponse"), "response"));
             var checkForCandidates = new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"),
                     "HasCandidates", new CodeVariableReferenceExpression(CodeConstants.RequestVariableName)));
 
@@ -282,12 +283,18 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     new CodeMethodInvokeExpression(
                         new CodeVariableReferenceExpression(CodeConstants.RequestVariableName),"GetValue<string>",
                         new CodePrimitiveExpression("scene_reprompt")))));
-            checkForCandidates.TrueStatements.Add(new CodeMethodReturnStatement(
+            checkForCandidates.TrueStatements.Add(new CodeAssignStatement(new CodeVariableReferenceExpression("response"), 
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Ask", new CodeVariableReferenceExpression("speech"),new CodeSnippetExpression("new Reprompt{OutputSpeech=reprompt == null ? speech : reprompt}"))));
-            checkForCandidates.FalseStatements.Add(new CodeMethodReturnStatement(
+            checkForCandidates.FalseStatements.Add(new CodeAssignStatement(new CodeVariableReferenceExpression("response"),
                 new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("ResponseBuilder"), "Tell", new CodeVariableReferenceExpression("speech"))));
 
             method.Statements.Add(checkForCandidates);
+            //response.SessionAttributes = request.State.Session.Attributes;
+            method.Statements.Add(new CodeAssignStatement(
+                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("response"),
+                    "SessionAttributes"),
+                new CodePropertyReferenceExpression(new CodePropertyReferenceExpression(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("request"), "State"), "Session"), "Attributes")));
+            method.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression("response")));
 
             return method;
         }

@@ -223,7 +223,12 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Parameters.Add(
                 new CodeParameterDeclarationExpression("this AlexaRequestInformation<APLSkillRequest>", "request"));
             method.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "name"));
-            method.Statements.Add(new CodeSnippetStatement("request.State.Session.Attributes.Remove(name);"));
+
+            method.Statements.Add(new CodeSnippetStatement(
+                "var attributes = request.State.Session.Attributes;"));
+            method.Statements.Add(new CodeConditionStatement(new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("attributes"), CodeBinaryOperatorType.ValueEquality, new CodePrimitiveExpression(null)), new CodeMethodReturnStatement()));
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("attributes"),
+                "Remove", new CodeVariableReferenceExpression("name")));
             return method;
         }
 

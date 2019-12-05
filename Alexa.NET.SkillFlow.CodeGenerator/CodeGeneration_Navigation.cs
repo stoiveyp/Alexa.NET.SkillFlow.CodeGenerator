@@ -351,6 +351,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("_notTracked"), "Contains", new CodeVariableReferenceExpression("sceneName")),
                 new CodeMethodReturnStatement()));
 
+            method.Statements.Add(new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), "ClearCandidates",
+                CodeConstants.RequestVariableRef));
             var mainMarkerCheck = new CodeConditionStatement(
                 new CodeBinaryOperatorExpression(
                     new CodeVariableReferenceExpression("interactionName"),
