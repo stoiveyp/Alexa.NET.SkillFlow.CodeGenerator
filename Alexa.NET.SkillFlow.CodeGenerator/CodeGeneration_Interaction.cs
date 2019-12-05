@@ -48,61 +48,31 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 hearPhrases.Remove("*");
             }
 
-            string CheckForDefaults(string key)
-            {
-                if (key.Equals("yes", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "AMAZON.YesIntent";
-                }
+            var dictionary = hearPhrases.Select(hp => new PhraseLink(hp, context.Marker)).ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(hp.IsMatch));
 
-                if (key.Equals("no", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "AMAZON.NoIntent";
-                }
+            var nullPhrases = dictionary.Where(kvp => kvp.Value == null).ToArray();
 
-                if (key.Equals("help", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "AMAZON.HelpIntent";
-                }
-
-                return key;
-            }
-
-            var dictionary = hearPhrases.Select(CheckForDefaults).ToDictionary(hp => hp, hp => context.Language.IntentTypes?.FirstOrDefault(i => i.Samples.Contains(hp)));
-
-            var nullPhrases = dictionary.Where(kvp => kvp.Value == null).Select(k => k.Key).ToArray();
-
-            var intentName = context.Marker;
-            foreach (var nulls in nullPhrases.GroupBy(n => n.StartsWith("AMAZON.") ? n : string.Empty)
-                .Select(g => g.ToArray()))
+            foreach (var nulls in nullPhrases.GroupBy(np => np.Key.IntentName).Select(g => g.ToArray()))
             {
                 if (!nulls.Any()) continue;
-
-                var azType = nulls.Length == 1 && nulls.First().StartsWith("AMAZON.");
-                if (azType)
-                {
-                    intentName = nulls.Single();
-                }
-
+                var nullItem = nulls.First();
                 var intent = new IntentType
                 {
-                    Name = intentName,
-                    Samples = azType ? new string[] { } : nulls
+                    Name = nullItem.Key.IntentName,
+                    Samples = nulls.Where(n => n.Key.Phrase != null).Select(n => n.Key.Phrase).ToArray()
                 };
 
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
 
-                foreach (var it in nulls.ToArray())
-                {
-                    var unit = context.CreateIntentRequestHandler(intentName);
-                    AddHandlerCheck(unit.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod), context);
-                    dictionary[it] = intent;
-                }
+
+                var unit = context.CreateIntentRequestHandler(nullItem.Key.ClassName);
+                AddHandlerCheck(unit.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod), context);
+                dictionary[nullItem.Key] = intent;
             }
 
-            foreach (var item in dictionary.Keys.ToArray().Except(nullPhrases))
+            foreach (var item in dictionary.Where(kvp => nullPhrases.All(np => np.Key != kvp.Key)))
             {
-                UpdateSharedIntent(context, dictionary, item);
+                UpdateSharedIntent(context, item);
             }
 
             if (fallback)
@@ -113,61 +83,53 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static void UpdateSharedIntent(
             CodeGeneratorContext context,
-            Dictionary<string, IntentType> dictionary,
-            string item)
+            KeyValuePair<PhraseLink, IntentType> item)
         {
-            string AmazonSafeName(string original)
-            {
-                return original.StartsWith("AMAZON_") ? "AMAZON." + original.Substring(7) : original;
-            }
+            var sharedHandlerClass = context.RequestHandlers[item.Key.ClassName].FirstType();
 
-            var sharedIntent = dictionary[item];
-            var sharedHandlerClass = context.RequestHandlers[AmazonSafeName(sharedIntent.Name)].FirstType();
-
-            var safeItemName = item.Safe();
-            if (sharedIntent.Samples.Length > 1)
+            if (item.Value.Samples.Length > 1)
             {
-                //Move phrase to its own intent
-                sharedIntent.Samples = sharedIntent.Samples.Except(new[] { item }).ToArray();
+                item.Value.Samples = item.Value.Samples.Except(new[] { item.Key.Phrase }).ToArray();
                 var intent = new IntentType
                 {
-                    Name = item,
-                    Samples = item.StartsWith("AMAZON.") ? new string[] { } : new[] { item }
+                    Name = item.Key.IntentName,
+                    Samples = item.Key.Phrase == null ? new string[] { } : new[] { item.Key.Phrase }
                 };
-                sharedIntent = intent;
+                item = new KeyValuePair<PhraseLink, IntentType>(item.Key, intent);
 
                 context.Language.IntentTypes = context.Language.IntentTypes.Add(intent);
-                dictionary[AmazonSafeName(item)] = intent;
-                var newHandler = context.CreateIntentRequestHandler(safeItemName);
-                var sharedStatements = sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod);
-                var newStatements = newHandler.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod);
+            }
 
+            var newHandler = context.CreateIntentRequestHandler(item.Key.ClassName);
+            var sharedStatements = sharedHandlerClass.MethodStatements(CodeConstants.HandlerPrimaryMethod);
+            var newStatements = newHandler.FirstType().MethodStatements(CodeConstants.HandlerPrimaryMethod);
+
+            if (sharedStatements != newStatements)
+            {
                 for (var stmtIndex = 1; stmtIndex < sharedStatements.Count - 2; stmtIndex++)
                 {
                     if (sharedStatements[stmtIndex] is CodeVariableDeclarationStatement)
                     {
                         continue;
                     }
+
                     newStatements.AddBeforeReturn(sharedStatements[stmtIndex]);
                 }
-
-
-                AddHandlerCheck(newStatements, context);
             }
 
+            AddHandlerCheck(newStatements, context);
 
-            var originalName = sharedIntent.Name;
-            sharedIntent.Name = item;
-            var rh = context.RequestHandlers[AmazonSafeName(originalName.Safe())];
 
-            context.RequestHandlers.Remove(AmazonSafeName(originalName.Safe()));
-            context.RequestHandlers.Add(AmazonSafeName(safeItemName), rh);
+            var rh = context.RequestHandlers[item.Key.ClassName];
+
+            context.RequestHandlers.Remove(item.Key.ClassName);
+            context.RequestHandlers.Add(item.Key.ClassName, rh);
 
             var handlerType = rh.FirstType();
-            handlerType.Name = safeItemName;
+            handlerType.Name = item.Key.ClassName;
             var constructor = handlerType.Members.OfType<CodeConstructor>().First();
             constructor.BaseConstructorArgs.Clear();
-            constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(AmazonSafeName(safeItemName)));
+            constructor.BaseConstructorArgs.Add(new CodePrimitiveExpression(item.Value.Name));
         }
 
         public static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context, string marker = null)

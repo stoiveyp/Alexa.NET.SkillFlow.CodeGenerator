@@ -4,12 +4,13 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>skillflow</ToolCommandName>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <PackAsTool>true</PackAsTool>
+    <OutputType>EXE</OutputType>
+    <!--<PackAsTool>true</PackAsTool>
     <ToolCommandName>botsay</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <StartupObject />
+    <StartupObject />-->
     <Authors>Steven Pears</Authors>
-    <Company>teven Pears</Company>
+    <Company>Steven Pears</Company>
     <Product />
     <Description>Small library that converts SkillFlow files into cs projects</Description>
     <PackageProjectUrl>https://github.com/stoiveyp/Alexa.NET.SkillFlow.CodeGenerator</PackageProjectUrl>
@@ -19,16 +20,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="story.abc" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Alexa.NET.SkillFlow.Interpreter" Version="1.0.2" />
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Alexa.NET.SkillFlow.CodeGenerator\Alexa.NET.SkillFlow.CodeGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="story.abc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
