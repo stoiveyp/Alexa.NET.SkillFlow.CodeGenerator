@@ -5,6 +5,18 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 {
     public static class CodeGeneration_RequestHandlers
     {
+        public static CodeCompileUnit CreateStopRequestHandler(this CodeGeneratorContext context)
+        {
+            string launchRequestName = "AMAZON.StopIntent";
+            if (context.RequestHandlers.ContainsKey(launchRequestName))
+            {
+                return context.RequestHandlers[launchRequestName];
+            }
+
+            var mainClass = GenerateLaunchHandler(launchRequestName, context);
+            return CreateRequestHandlerUnit(context, launchRequestName, mainClass);
+        }
+
         public static CodeCompileUnit CreateLaunchRequestHandler(this CodeGeneratorContext context)
         {
             string launchRequestName = "Launch";

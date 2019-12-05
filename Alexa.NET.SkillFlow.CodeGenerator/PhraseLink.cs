@@ -25,6 +25,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             "yes" => "AMAZON.YesIntent",
             "no" => "AMAZON.NoIntent",
             "help" => "AMAZON.HelpIntent",
+            "stop" => "AMAZON.StopIntent",
             _ => OriginalMark.Safe()
         };
 
@@ -33,6 +34,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             "yes" => null,
             "no" => null,
             "help" => null,
+            "stop" => null,
             _ => OriginalPhrase
         };
 

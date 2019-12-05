@@ -17,6 +17,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
             CodeGeneration_Story.CreateProjectFile(context);
+            if (!context.RequestHandlers.ContainsKey("AMAZON.StopIntent"))
+            {
+                CodeGeneration_Interaction.AddIntent(context, new List<string> {"stop"}, new CodeStatementCollection());
+            }
+
             UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"], context.RequestHandlers.Keys.ToArray());
             CodeGeneration_Fallback.Ensure(context);
 
@@ -40,10 +45,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static void UpdatePipeline(CodeCompileUnit code, string[] requestHandlers)
         {
+            var containsStop = requestHandlers.Contains("AMAZON.StopIntent".Safe());
             var array = new CodeArrayCreateExpression(new CodeTypeReference("IAlexaRequestHandler<APLSkillRequest>[]"));
             foreach (var requestHandler in requestHandlers.OrderBy(rh => rh.Length))
             {
                 array.Initializers.Add(new CodeObjectCreateExpression(requestHandler.Safe()));
+            }
+
+            if (!containsStop)
+            {
+                array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.StopIntent".Safe()));
             }
 
             array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.FallbackIntent".Safe()));
