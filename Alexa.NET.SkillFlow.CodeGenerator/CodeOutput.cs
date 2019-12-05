@@ -6,7 +6,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Linq;
-using Alexa.NET.Management;
 using Alexa.NET.Management.InteractionModel;
 using Alexa.NET.Management.Skills;
 using Newtonsoft.Json.Linq;
@@ -18,6 +17,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static Task CreateIn(CodeGeneratorContext context, string directoryFullName)
         {
             CodeGeneration_Story.CreateProjectFile(context);
+            if (!context.RequestHandlers.ContainsKey("AMAZON.StopIntent"))
+            {
+                CodeGeneration_Interaction.AddIntent(context, new List<string> {"stop"}, new CodeStatementCollection());
+            }
+
             UpdatePipeline((CodeCompileUnit)context.OtherFiles["Pipeline.cs"], context.RequestHandlers.Keys.ToArray());
             CodeGeneration_Fallback.Ensure(context);
 
@@ -41,10 +45,16 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
         private static void UpdatePipeline(CodeCompileUnit code, string[] requestHandlers)
         {
+            var containsStop = requestHandlers.Contains("AMAZON.StopIntent".Safe());
             var array = new CodeArrayCreateExpression(new CodeTypeReference("IAlexaRequestHandler<APLSkillRequest>[]"));
             foreach (var requestHandler in requestHandlers.OrderBy(rh => rh.Length))
             {
                 array.Initializers.Add(new CodeObjectCreateExpression(requestHandler.Safe()));
+            }
+
+            if (!containsStop)
+            {
+                array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.StopIntent".Safe()));
             }
 
             array.Initializers.Add(new CodeObjectCreateExpression("AMAZON.FallbackIntent".Safe()));
@@ -59,15 +69,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         private static async Task OutputSkillManifest(CodeGeneratorContext context, JsonSerializer json, string directoryFullName)
         {
             var language = context.Language;
-            language.SlotTypes = context.Slots.Select(s => new SlotType
-            {
-                Name = s.Key,
-                Values = new[]{new SlotTypeValue
-                {
-                    Name=new SlotTypeValueName { Value=s.Value}
-                }
-            }
-            }).ToArray();
             var oldName = language.InvocationName;
             language.InvocationName = context.Options.InvocationName;
             using (var manifestStream = File.Open(Path.Combine(directoryFullName, "skillManifest.json"), FileMode.Create, FileAccess.Write))

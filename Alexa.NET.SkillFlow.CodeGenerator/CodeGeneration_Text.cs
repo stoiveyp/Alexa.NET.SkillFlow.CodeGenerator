@@ -1,5 +1,6 @@
 ﻿using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Alexa.NET.SkillFlow.CodeGenerator
@@ -24,19 +25,24 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             }
         }
 
-        private static Regex ContentVariableRegex = new Regex(@"\{(?<name>\w+)\}", RegexOptions.Compiled);
+        public static Match[] GetVariables(string content)
+        {
+            return ContentVariableRegex.Matches(content).Cast<Match>().ToArray();
+        }
+
+        private static readonly Regex ContentVariableRegex = new Regex(@"\{(?<name>\w+)\}", RegexOptions.Compiled);
         private static CodeExpression[] VariableSplitArray(string content)
         {
             var currentPosition = 0;
-            var matches = ContentVariableRegex.Matches(content);
+            var matches = GetVariables(content);
 
-            if (matches.Count == 0)
+            if (!matches.Any())
             {
                 return new CodeExpression[] { new CodePrimitiveExpression(content) };
             }
 
             var list = new List<CodeExpression>();
-            foreach (Match match in matches)
+            foreach (var match in matches)
             {
                 if (match.Index != currentPosition)
                 {
