@@ -241,6 +241,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Statements.Add(new CodeSnippetStatement(
                 "var attributes = request.State.Session.Attributes;"));
+            method.Statements.Add(new CodeConditionStatement(new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("attributes"),CodeBinaryOperatorType.ValueEquality,new CodePrimitiveExpression(null)),new CodeMethodReturnStatement()));
             method.Statements.Add(new CodeSnippetStatement("foreach(var key in attributes.Keys.Where(k => k.StartsWith(prefix)).ToArray()){"));
             method.Statements.Add(new CodeSnippetStatement("attributes.Remove(key);"));
             method.Statements.Add(new CodeSnippetStatement("}"));
