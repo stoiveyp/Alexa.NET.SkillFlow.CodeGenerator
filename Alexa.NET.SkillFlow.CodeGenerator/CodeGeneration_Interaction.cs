@@ -154,11 +154,11 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
         public static void AddHandlerCheck(CodeStatementCollection newStatements, CodeGeneratorContext context, string marker = null)
         {
             newStatements.AddBeforeReturn(new CodeConditionStatement(
-                new CodeMethodInvokeExpression(
+                new CodeBinaryOperatorExpression(new CodeVariableReferenceExpression("!handled"), CodeBinaryOperatorType.BooleanAnd,new CodeMethodInvokeExpression(
                         new CodeTypeReferenceExpression("Navigation"),
                         CodeConstants.IsCandidateMethodName,
                         new CodeVariableReferenceExpression("request"),
-                        new CodePrimitiveExpression(marker ?? context.Marker)),
+                        new CodePrimitiveExpression(marker ?? context.Marker))),
                 new CodeExpressionStatement(new CodeMethodInvokeExpression(
                     new CodeTypeReferenceExpression("await Navigation"),
                     CodeConstants.NavigationMethodName,
