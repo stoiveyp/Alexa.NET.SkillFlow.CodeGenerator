@@ -251,16 +251,17 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             var items = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression(CodeConstants.RequestVariableName), "Items");
             var speech = new CodePrimitiveExpression("speech");
 
-            method.Statements.Add(
-                new CodeVariableDeclarationStatement(
-                    CodeConstants.Var,
-                    "fullSpeech", 
+            method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string), "fullSpeech",new CodePrimitiveExpression(null)));
+            method.Statements.Add(new CodeConditionStatement(
+                new CodeMethodInvokeExpression(new CodePropertyReferenceExpression(CodeConstants.RequestVariableRef,"Items"),"ContainsKey",speech),
+                new CodeAssignStatement(
+                    new CodeVariableReferenceExpression("fullSpeech"),  
                     new CodeMethodInvokeExpression(
                         new CodeTypeReferenceExpression(typeof(string)),
                         "Concat",
                         new CodeMethodInvokeExpression(
                             new CodeCastExpression("List<string>", new CodeIndexerExpression(items, speech)),
-                            "ToArray"))));
+                            "ToArray")))));
 
             method.Statements.Add(CodeGeneration_Instructions.SetVariable(
                 new CodePrimitiveExpression("scene_lastSpeech"),new CodeVariableReferenceExpression("fullSpeech")));
