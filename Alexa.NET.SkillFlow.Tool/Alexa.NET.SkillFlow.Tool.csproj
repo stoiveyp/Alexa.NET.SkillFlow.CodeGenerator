@@ -6,7 +6,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <!--<OutputType>EXE</OutputType>-->
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>botsay</ToolCommandName>
+    <ToolCommandName>skillflow</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <StartupObject />
     <Authors>Steven Pears</Authors>
