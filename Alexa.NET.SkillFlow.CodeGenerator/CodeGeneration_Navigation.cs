@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alexa.NET.Request;
@@ -163,16 +164,15 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return method;
         }
 
+        public static readonly string[] NotTrackedSceneNames = new[] {"global prepend", "global append", "resume", "pause"};
+
         private static CodeMemberField CreateNotTrackedScenes()
         {
             return new CodeMemberField(typeof(string[]), "_notTracked")
             {
                 Attributes = MemberAttributes.Static,
                 InitExpression = new CodeArrayCreateExpression(typeof(string),
-                    new CodePrimitiveExpression("global append"),
-                    new CodePrimitiveExpression("global prepend"),
-                    new CodePrimitiveExpression("resume"),
-                    new CodePrimitiveExpression("pause"))
+                    NotTrackedSceneNames.Select(s => new CodePrimitiveExpression(s)).ToArray())
             };
         }
 
@@ -226,6 +226,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "candidateList",
                 new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(CandidateVariableName))));
             method.Statements.Add(new CodeSnippetExpression("var list = candidateList == null ? new List<string>() : new List<string>(candidateList)"));
+
+            method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"),"Contains",new CodeVariableReferenceExpression("interactionName")),new CodeMethodReturnStatement()));
+
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",
                 new CodeVariableReferenceExpression("interactionName")));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
