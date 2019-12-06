@@ -18,6 +18,7 @@
     <PackageTags>alexa, skillflow, dotnet</PackageTags>
     <PackageReleaseNotes>Initial Output</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
