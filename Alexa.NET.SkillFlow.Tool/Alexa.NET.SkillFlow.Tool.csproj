@@ -17,6 +17,7 @@
     <RepositoryUrl>https://github.com/stoiveyp/Alexa.NET.SkillFlow.CodeGenerator</RepositoryUrl>
     <PackageTags>alexa, skillflow, dotnet</PackageTags>
     <PackageReleaseNotes>Initial Output</PackageReleaseNotes>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,6 +32,10 @@
   <ItemGroup>
     <None Update="story.abc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 
