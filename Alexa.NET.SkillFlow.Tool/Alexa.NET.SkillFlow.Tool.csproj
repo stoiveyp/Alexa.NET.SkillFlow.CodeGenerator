@@ -3,10 +3,9 @@
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>skillflow</ToolCommandName>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
     <!--<OutputType>EXE</OutputType>-->
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>skillflow</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <StartupObject />
     <Authors>Steven Pears</Authors>
