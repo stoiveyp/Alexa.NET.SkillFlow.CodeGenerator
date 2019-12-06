@@ -226,6 +226,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             method.Statements.Add(new CodeVariableDeclarationStatement(typeof(string[]), "candidateList",
                 new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"), "GetValue<string[]>", new CodePrimitiveExpression(CandidateVariableName))));
             method.Statements.Add(new CodeSnippetExpression("var list = candidateList == null ? new List<string>() : new List<string>(candidateList)"));
+
+            method.Statements.Add(new CodeConditionStatement(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"),"Contains",new CodeVariableReferenceExpression("interactionName")),new CodeMethodReturnStatement()));
+
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("list"), "Add",
                 new CodeVariableReferenceExpression("interactionName")));
             method.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("request"),
