@@ -135,7 +135,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
 
             method.Statements.Add(new CodeSnippetStatement("foreach(var slot in slots){"));
             method.Statements.Add(SetVariable(new CodeBinaryOperatorExpression(new CodePrimitiveExpression("game_"), CodeBinaryOperatorType.Add,new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("slot"), "Key")),
-                new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("slot"), "Value")));
+                new CodePropertyReferenceExpression(new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("slot"), "Value"),"Value")));
             method.Statements.Add(new CodeSnippetStatement("}"));
 
             return method;
