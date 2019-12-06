@@ -99,8 +99,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             {
                 var snippet = new CodeSnippetStatement(
                     $"\t\t\tcase \"{interactionName}\" when Navigation.IsCandidate(request,\"{interactionName}\"):");
-                statements.AddBeforeReturn(snippet
-                    ,
+                statements.AddBeforeReturn(snippet,
+                        new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), "ClearCandidates",
+                            CodeConstants.RequestVariableRef),
                     method,
                     new CodeSnippetExpression("\t\t\tbreak")
                 );
@@ -111,6 +112,8 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var snippet = new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":");
                 statements.AddBeforeReturn(
                     snippet,
+                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), "ClearCandidates",
+                        CodeConstants.RequestVariableRef),
                     method,
                     new CodeSnippetExpression("\t\t\tbreak")
                 );

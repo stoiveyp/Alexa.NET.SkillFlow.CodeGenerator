@@ -169,7 +169,9 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                     {
                         var mainCall = interaction.OfType<CodeSnippetStatement>()
                             .First(ss => ss.Value.EndsWith(CodeConstants.ScenePrimaryMethod.ToLower() + "\":"));
-                        var mainInteract = interaction[interaction.IndexOf(mainCall) + 1];
+                        var mainInteract = interaction[interaction.IndexOf(mainCall) + 2];
+
+
                         if (prepend)
                         {
                             interaction.Insert(interaction.IndexOf(mainInteract),
