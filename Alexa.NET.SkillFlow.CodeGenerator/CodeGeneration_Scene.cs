@@ -69,7 +69,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 CodeConstants.ScenePrimaryMethod);
             invoke.AddFlowParameters();
 
-            statements.AddInteraction(CodeConstants.MainSceneMarker,invoke);
+            statements.AddInteraction(className,CodeConstants.MainSceneMarker,invoke);
 
             return method;
         }

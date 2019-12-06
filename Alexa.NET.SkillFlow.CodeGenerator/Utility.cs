@@ -92,7 +92,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             return method;
         }
 
-        public static CodeSnippetStatement AddInteraction(this CodeStatementCollection statements, string interactionName,
+        public static CodeSnippetStatement AddInteraction(this CodeStatementCollection statements, string sceneName, string interactionName,
             CodeMethodInvokeExpression method, bool whenCandidate = false)
         {
             if (whenCandidate)
@@ -112,7 +112,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
                 var snippet = new CodeSnippetStatement($"\t\t\tcase \"{interactionName}\":");
                 statements.AddBeforeReturn(
                     snippet,
-                    new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), "ClearCandidates",
+                    CodeGeneration_Navigation.NotTrackedSceneNames.SelectMany(s => new[]{s,CodeGeneration_Scene.SceneClassName(s)}).Contains(sceneName) ? null : new CodeMethodInvokeExpression(new CodeTypeReferenceExpression("Navigation"), "ClearCandidates",
                         CodeConstants.RequestVariableRef),
                     method,
                     new CodeSnippetExpression("\t\t\tbreak")

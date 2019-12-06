@@ -37,7 +37,7 @@ namespace Alexa.NET.SkillFlow.CodeGenerator
             invoke.AddFlowParameters();
 
             statements.Add(CodeGeneration_Navigation.EnableCandidate(context.Marker));
-            interactions.AddInteraction(context.Marker, invoke, true);
+            interactions.AddInteraction(type.Name,context.Marker,invoke, true);
         }
 
         private static string NumberAsWord(int count)
