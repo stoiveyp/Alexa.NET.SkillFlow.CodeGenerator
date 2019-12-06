@@ -4,11 +4,11 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>skillflow</ToolCommandName>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <OutputType>EXE</OutputType>
-    <!--<PackAsTool>true</PackAsTool>
+    <!--<OutputType>EXE</OutputType>-->
+    <PackAsTool>true</PackAsTool>
     <ToolCommandName>botsay</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <StartupObject />-->
+    <StartupObject />
     <Authors>Steven Pears</Authors>
     <Company>Steven Pears</Company>
     <Product />
