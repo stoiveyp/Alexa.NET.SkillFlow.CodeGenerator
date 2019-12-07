@@ -3,11 +3,12 @@
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>skillflow</ToolCommandName>
-    <!--<OutputType>EXE</OutputType>-->
+    <OutputType>EXE</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    <StartupObject />
+    <StartupObject>Alexa.NET.SkillFlow.Tool.Program</StartupObject>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <Authors>Steven Pears</Authors>
     <Company>Steven Pears</Company>
     <Product />
@@ -18,6 +19,8 @@
     <PackageReleaseNotes>Initial Output</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <ApplicationIcon />
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
