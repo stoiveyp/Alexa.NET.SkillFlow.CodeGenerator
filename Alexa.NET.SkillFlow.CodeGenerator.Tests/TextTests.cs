@@ -7,7 +7,6 @@ namespace Alexa.NET.SkillFlow.CodeGenerator.Tests
 {
     public class TextTests
     {
-        [Fact]
         public async Task MultipleSayAddsRandomMethodSelection()
         {
             var story = TestStory();
